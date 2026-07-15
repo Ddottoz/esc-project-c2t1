@@ -1,0 +1,157 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+    height:100vh;
+    overflow:hidden;
+}
+
+.container{
+    display:flex;
+    width:100%;
+    height:100vh;
+}
+
+/* LEFT */
+
+.left-panel{
+
+    width:42%;
+    background:#ec1c24;
+    color:white;
+    position:relative;
+}
+
+.logo{
+
+    width:90px;
+    position:absolute;
+    top:20px;
+    left:20px;
+}
+
+.left-content{
+
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+.left-content h1{
+
+    font-size:70px;
+    margin-bottom:20px;
+}
+
+.left-content p{
+
+    font-size:24px;
+    margin-bottom:50px;
+}
+
+.signup-btn{
+
+    background:white;
+    color:#ec1c24;
+    text-decoration:none;
+    padding:18px 60px;
+    border-radius:40px;
+    font-size:34px;
+    font-weight:bold;
+}
+
+/* RIGHT */
+
+.right-panel{
+
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#fafafa;
+}
+
+.login-box{
+
+    width:60%;
+    max-width:550px;
+}
+
+.login-box h1{
+
+    text-align:center;
+    color:#ec1c24;
+    font-size:72px;
+    margin-bottom:15px;
+}
+
+.login-box p{
+
+    text-align:center;
+    font-size:22px;
+    margin-bottom:50px;
+}
+
+.input-group{
+
+    display:flex;
+    align-items:center;
+    background:#f2f2f2;
+    border-radius:18px;
+    margin-bottom:25px;
+    padding:18px;
+}
+
+.input-group i{
+
+    color:#666;
+    font-size:28px;
+    margin-right:18px;
+}
+
+.input-group input{
+
+    border:none;
+    background:none;
+    width:100%;
+    outline:none;
+    font-size:28px;
+}
+
+.forgot{
+
+    text-align:right;
+    margin-bottom:45px;
+}
+
+.forgot a{
+
+    text-decoration:none;
+    color:#666;
+    font-size:20px;
+}
+
+button{
+
+    display:block;
+    margin:auto;
+    border:none;
+    background:#ec1c24;
+    color:white;
+    padding:18px 80px;
+    border-radius:35px;
+    font-size:32px;
+    cursor:pointer;
+    transition:.3s;
+}
+
+button:hover{
+
+    background:#c91118;
+}
