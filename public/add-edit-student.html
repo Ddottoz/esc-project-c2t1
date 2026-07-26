@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Add / Edit Student</title>
+        <link rel="stylesheet" href="stylesheets/add-edit-student.css">
+    </head>
+
+    <body>
+        <!-- can create separate file for navbar n include it after -->
+        <div class="navbar">DAS &mdash; Student Records</div>  
+
+        <div class="card">
+            <div class="load-existing">
+                <label for="existingStudentPicker">Editing an existing student? Select them here:</label>
+                <select id="existingStudentPicker"></select>
+            </div>
+
+            <h2 id="formTitle">Add Student</h2>
+            <form id="studentForm">
+                <label for="studentId">Student ID (Birth Certificate No.)</label>
+                <input type="text" id="studentId" required>
+                <div class="field-error" id="err-studentId"></div>
+
+                <label for="studentName">Student Name</label>
+                <input type="text" id="studentName" required>
+                <div class="field-error" id="err-studentName"></div>
+
+                <label for="dateOfBirth">Date of Birth</label>
+                <input type="date" id="dateOfBirth" required>
+                <div class="field-error" id="err-dateOfBirth"></div>
+
+                <label for="phoneNumber">Phone Number</label>
+                <input type="tel" id="phoneNumber">
+
+                <label for="email">Email Address</label>
+                <input type="email" id="email">
+
+                <label for="schLevel">School Level</label>
+                <select id="schLevel">
+                    <option value="">Select Level</option>
+                    <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option>
+                    <option>Primary 4</option><option>Primary 5</option><option>Primary 6</option>
+                    <option>Secondary 1</option><option>Secondary 2</option>
+                    <option>Secondary 3</option><option>Secondary 4</option>
+                </select>
+
+                <label for="schoolId">School</label>
+                <select id="schoolId"></select>
+
+                <label for="centreId">Centre</label>
+                <select id="centreId" required></select>
+                <div class="field-error" id="err-centreId"></div>
+
+                <label for="teacherId">Teacher</label>
+                <select id="teacherId" required></select>
+                <div class="field-error" id="err-teacherId"></div>
+
+                <label for="programmeAttending">Programme(s) Attending</label>
+                <div class="checkbox-group" id="programmeCheckboxes"></div>
+
+                <label>Contact Person(s)</label>
+                <div id="contactPersons"></div>
+                <button type="button" class="secondary small" id="addContactBtn">+ Add Contact Person</button>
+                
+                <div class="button-row">
+                    <button type="submit" id="submitBtn">Create Student</button>
+                </div>
+                <div id="statusMsg"></div>
+            </form>
+        </div>
+
+        <script src="javascripts/studentajaxclient.js"></script>
+        <script src="javascripts/add-edit-student.js"></script>
+    </body>
+</html>

@@ -1,0 +1,163 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #ffffff;
+    margin: 0;
+}
+
+/* temporary */
+.navbar {
+    background: red;
+    color: #ffffff;
+    padding: 14px 24px;
+    font-weight: bold;
+}
+
+.card {
+    background: #ffffff;
+    max-width: 640px;
+    margin: 24px auto;
+    padding: 24px 32px;
+    border-radius: 6px;
+}
+
+h2 {
+    color: red;
+    margin-top: 0;
+}
+
+label {
+    display: block;
+    font-size: 13px;
+    color: #635F5F;
+    margin: 14px 0 4px;
+}
+
+input, select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+input.invalid, select.invalid {
+    border-color: #c71f24;
+    background: #fff6f6;
+}
+
+.field-error {
+    color: #c71f24;
+    font-size: 12px;
+    margin-top: 4px;
+    min-height: 14px;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.checkbox-group .option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.checkbox-group .option input {
+    width: auto;
+}
+
+.contact-card {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-top: 12px;
+    background: #fafafa;
+}
+
+.contact-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: bold;
+    color: #444;
+}
+
+.contact-card .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.contact-card .checkbox-row input {
+    width: auto;
+}
+
+.button-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+button {
+    background: red;
+    color: #ffffff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #c71f24;
+}
+
+button.secondary {
+    background: #ffffff;
+    color: red;
+    border: 1px solid red;
+}
+
+button.secondary:hover {
+    background: #fdecec;
+}
+
+button .small {
+    padding: 6px 14px;
+    font-size: 13px;
+    margin-top: 10px;
+}
+
+#statusMsg {
+    margin-top: 12px;
+    font-size: 13px;
+    min-height: 16px;
+}
+
+#statusMsg.error {
+    color: #c71f24;
+}
+
+#statusMsg.success {
+    color: #1a7a1a;
+}
+
+.load-existing {
+    background: #fdecec;
+    border: 1px solid #f3c6c6;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+} 
+
+.load-existing label {
+    margin-top: 0;
+}
