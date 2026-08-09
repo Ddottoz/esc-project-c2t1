@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= band.name %> Enrollment</title>
+    <link rel="stylesheet" href="/stylesheets/bands.css">
+</head>
+
+<body>
+<div class="app-shell">
+    <%- include('../partials/top-nav', {activeTop: 'bands'}) %>
+    <%- include('../partials/sidebar', {type: 'band', activeSide: 'enrollment'}) %>
+
+    <main class="content-page">
+        <div class="page-title-row">
+            <h1>Enrollment: <%= roster.length %> Students</h1>
+
+            <div class="filters">
+                <select id="centre-filter">
+                    <option value="">View by Centre</option>
+                    <% [...new Set(roster.map(student => student.centre))].forEach(centre => { %>
+                        <option><%= centre %></option>
+                    <% }) %>
+                </select>
+
+                <select id="level-filter">
+                    <option value="">View by School Level</option>
+                    <% [...new Set(roster.map(student => student.schoolLevel))].forEach(level => { %>
+                        <option><%= level %></option>
+                    <% }) %>
+                </select>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <a class="button secondary button-with-icon" href="/bands/<%= band.id %>/enrollment.csv">
+                <span class="button-icon download-icon" aria-hidden="true"></span>
+                Download Enrollment List
+            </a>
+            <button class="button secondary" type="button" data-open-modal="add-student-modal">
+                + Add Student
+            </button>
+            <label class="search">
+                Search
+                <input id="roster-search" type="search" aria-label="Search students">
+            </label>
+        </div>
+
+        <div class="table-wrap">
+            <table id="roster-table">
+                <colgroup>
+                    <col class="roster-name-column">
+                    <col class="roster-submissions-column">
+                    <col class="roster-graded-column">
+                    <col class="roster-pending-column">
+                    <col class="roster-score-column">
+                    <col class="roster-centre-column">
+                    <col class="roster-level-column">
+                    <col class="roster-actions-column">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th><button class="sort-button" data-sort="lastName" data-type="text">Name <span class="sort-icon" aria-hidden="true"></span></button></th>
+                    <th><button class="sort-button" data-sort="submissions" data-type="number">Submissions <span class="sort-icon" aria-hidden="true"></span></button></th>
+                    <th><button class="sort-button" data-sort="graded" data-type="number">Graded <span class="sort-icon" aria-hidden="true"></span></button></th>
+                    <th><button class="sort-button" data-sort="pending" data-type="number">Pending Review <span class="sort-icon" aria-hidden="true"></span></button></th>
+                    <th><button class="sort-button" data-sort="score" data-type="number">Score <span class="sort-icon" aria-hidden="true"></span></button></th>
+                    <th><button class="sort-button" data-sort="centre" data-type="text">Centre <span class="sort-icon" aria-hidden="true"></span></button></th>
+                    <th><button class="sort-button" data-sort="level" data-type="text">School Level <span class="sort-icon" aria-hidden="true"></span></button></th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <% roster.forEach(student => { %>
+                    <tr
+                        data-name="<%= student.name.toLowerCase() %>"
+                        data-last-name="<%= student.name.trim().split(/\s+/).at(-1).toLowerCase() %>"
+                        data-submissions="<%= student.submissionsPercent %>"
+                        data-graded="<%= student.gradedPercent %>"
+                        data-pending="<%= student.pendingReview %>"
+                        data-score="<%= student.scorePercent === null ? 0 : student.scorePercent %>"
+                        data-centre="<%= student.centre %>"
+                        data-level="<%= student.schoolLevel %>"
+                    >
+                        <td><a href="/bands/<%= band.id %>/students/<%= student.id %>"><%= student.name %></a></td>
+                        <td><%= student.submissionsPercent %>%</td>
+                        <td><%= student.gradedPercent %>%</td>
+                        <td><%= student.pendingReview %></td>
+                        <td><%= student.scorePercent === null ? '--' : student.scorePercent + '%' %></td>
+                        <td><%= student.centre %></td>
+                        <td><%= student.schoolLevel %></td>
+                        <td>
+                            <button
+                                class="icon-button danger"
+                                type="button"
+                                data-confirm-form="remove-<%= student.id %>"
+                                aria-label="Remove <%= student.name %>"
+                            >
+                                <span class="trash-icon" aria-hidden="true"></span>
+                            </button>
+                            <form
+                                id="remove-<%= student.id %>"
+                                method="post"
+                                action="/bands/<%= band.id %>/enrollment/<%= student.id %>/delete"
+                            ></form>
+                        </td>
+                    </tr>
+                <% }) %>
+                </tbody>
+            </table>
+
+            <p id="empty-roster" class="empty-message" hidden>No students match these filters.</p>
+        </div>
+    </main>
+</div>
+
+<div class="modal-backdrop" id="add-student-modal" <%= enrollmentError ? '' : 'hidden' %>>
+    <section class="modal add-student-modal" role="dialog" aria-modal="true">
+        <button class="modal-close" data-close-modal type="button">&times;</button>
+        <h2>Add Student</h2>
+
+        <% if (enrollmentError) { %>
+            <div class="alert error"><%= enrollmentError %></div>
+        <% } %>
+
+        <form method="post" action="/bands/<%= band.id %>/enrollment">
+            <div class="student-search-row">
+                <label>
+                    Search by name
+                    <input id="student-modal-search" type="search" placeholder="Student name">
+                </label>
+                <button class="button secondary" id="student-search-button" type="button">Search</button>
+            </div>
+
+            <label>
+                Band Movement
+                <select id="student-movement-filter">
+                    <option value="">All Movements</option>
+                    <option>Advance</option>
+                    <option>Continue</option>
+                    <option>Lower</option>
+                </select>
+            </label>
+
+            <label>
+                Select an existing student
+                <select id="student-picker" name="studentId" required>
+                    <option value="">Select student</option>
+                    <% availableStudents.forEach(student => { %>
+                        <option
+                            value="<%= student.id %>"
+                            data-name="<%= student.name.toLowerCase() %>"
+                            data-movement="<%= student.movement %>"
+                        >
+                            <%= student.name %> &mdash; <%= student.latestStatus %> &mdash;
+                            <%= student.movement %> from <%= student.currentBand %>
+                        </option>
+                    <% }) %>
+                </select>
+            </label>
+
+            <p id="student-filter-empty" class="empty-message" <%= availableStudents.length ? 'hidden' : '' %>>
+                No students match these filters.
+            </p>
+            <button class="button primary" type="submit">Add to Band</button>
+        </form>
+    </section>
+</div>
+
+<div class="modal-backdrop" id="confirm-modal" hidden>
+    <section class="modal" role="dialog" aria-modal="true">
+        <h2>Remove student?</h2>
+        <p>This removes the student from this Band only.</p>
+        <div class="modal-actions">
+            <button class="button secondary" data-close-modal type="button">Cancel</button>
+            <button class="button danger-bg" id="confirm-action" type="button">Remove</button>
+        </div>
+    </section>
+</div>
+
+<script src="/javascripts/bands.js"></script>
+</body>
+
+</html>

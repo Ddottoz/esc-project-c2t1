@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= pageTitle %></title>
+    <link rel="stylesheet" href="/stylesheets/bands.css">
+</head>
+
+<body>
+<div class="app-shell <%= layout === 'standalone' ? 'standalone' : '' %>">
+    <%- include('partials/top-nav', {activeTop: typeof activeTop === 'undefined' ? 'bands' : activeTop}) %>
+
+    <% if (layout === 'band') { %>
+        <%- include('partials/sidebar', {type: 'band', activeSide}) %>
+    <% } else if (layout === 'student') { %>
+        <%- include('partials/sidebar', {type: 'student', activeSide, student}) %>
+    <% } %>
+
+    <main class="<%= layout === 'standalone' ? 'dashboard-page' : 'content-page' %>">
+        <% if (typeof backUrl !== 'undefined') { %>
+            <a href="<%= backUrl %>">‹ <%= backLabel %></a>
+        <% } %>
+
+        <section class="placeholder">
+            <h1><%= pageTitle %></h1>
+            <p><%= message %></p>
+            <p class="todo-note">TODO: <%= todo %></p>
+        </section>
+    </main>
+</div>
+
+<% if (layout !== 'standalone') { %>
+    <script src="/javascripts/bands.js"></script>
+<% } %>
+</body>
+
+</html>
