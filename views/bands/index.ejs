@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bands Dashboard</title>
+    <link rel="stylesheet" href="/stylesheets/bands.css">
+</head>
+<body>
+<div class="app-shell standalone">
+    <%- include('../partials/top-nav', {activeTop: 'bands'}) %>
+    <main class="dashboard-page">
+        <div class="page-title-row bands-title-row">
+            <h1>Bands Dashboard</h1>
+            <button class="button secondary" type="button" data-open-modal="create-band-modal">+ Create Band</button>
+        </div>
+        <% groupedBands.forEach(group => { %>
+            <section class="term-section">
+                <h2><%= group.term %></h2>
+                <div class="band-grid">
+                    <% group.bands.forEach(band => { %>
+                        <a class="band-card" href="/bands/<%= band.id %>/assessments">
+                            <strong><%= band.name %></strong>
+                            <small>
+                                <%= band.studentCount %> students &middot;
+                                <%= band.pendingReviews %>
+                                pending reviews
+                            </small>
+                        </a>
+                    <% }) %>
+                </div>
+            </section>
+        <% }) %>
+    </main>
+</div>
+
+<div class="modal-backdrop" id="create-band-modal" <%= createError ? '' : 'hidden' %>>
+    <section class="modal create-band-modal" role="dialog" aria-modal="true" aria-labelledby="create-title">
+        <div class="create-modal-body">
+            <h2 id="create-title">Create Band</h2>
+            <p class="required-note">Required Field <span>*</span></p>
+            <% if (createError) { %>
+                <div class="alert error modal-error"><%= createError %></div>
+            <% } %>
+
+            <form id="create-band-form" method="post" action="/bands" class="create-band-form">
+                <label class="full">
+                    <span class="field-label">Band <span class="required-asterisk">*</span></span>
+                    <select name="name" required>
+                        <option value="">Select Band</option>
+                        <% ['Band A1', 'Band A2', 'Band A3', 'Band B4', 'Band B5', 'Band B6', 'Band C7', 'Band C8', 'Band C9'].forEach(name => { %>
+                            <option value="<%= name %>" <%= formData.name === name ? 'selected' : '' %>>
+                                <%= name %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </label>
+
+                <label>
+                    <span class="field-label">Year <span class="required-asterisk">*</span></span>
+                    <select name="year" required>
+                        <option value="">Select Year</option>
+                        <% [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035].forEach(year => { %>
+                            <option value="<%= year %>" <%= String(formData.year) === String(year) ? 'selected' : '' %>>
+                                <%= year %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </label>
+
+                <label>
+                    <span class="field-label">Semester <span class="required-asterisk">*</span></span>
+                    <select name="semester" required>
+                        <option value="">Select Semester</option>
+                        <% ['Semester 1', 'Semester 2'].forEach(semester => { %>
+                            <option value="<%= semester %>" <%= formData.semester === semester ? 'selected' : '' %>>
+                                <%= semester %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </label>
+
+                <label class="full">
+                    Band Description
+                    <textarea name="description"><%= formData.description %></textarea>
+                </label>
+            </form>
+        </div>
+        <div class="create-modal-actions">
+            <button class="button secondary" type="button" data-close-modal>Cancel</button>
+            <button class="button primary" type="submit" form="create-band-form">Create Band</button>
+        </div>
+    </section>
+</div>
+
+<script src="/javascripts/bands.js"></script>
+</body>
+
+</html>
