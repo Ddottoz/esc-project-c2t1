@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Progress Report</title>
+    <!-- Import Figtree Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --das-red: #C1272D;
+            --das-dark-red: #A01F24;
+            --das-grey: #635F5F;
+            --das-light-grey: #F4F4F4;
+            --das-white: #FFFFFF;
+            --badge-pass-bg: #E6F4EA;
+            --badge-pass-text: #137333;
+            --badge-warn-bg: #FEF7E0;
+            --badge-warn-text: #B06000;
+        }
+
+        body {
+            font-family: 'Figtree', sans-serif;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            background-color: #FAFAFA;
+        }
+
+        /* --- Topbar Styling --- */
+        .topbar {
+            background-color: var(--das-red);
+            color: var(--das-white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+            padding: 0 1.5rem 0 0;
+            box-sizing: border-box;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+        }
+
+        .topbar-logo {
+            background-color: #FFFFFF;
+            color: var(--das-red);
+            font-weight: 800;
+            font-size: 1.1rem;
+            height: 60px;
+            padding: 0 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            line-height: 1;
+            border-right: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .topbar-logo span {
+            font-size: 0.65rem;
+            letter-spacing: 0.5px;
+        }
+
+        .topbar-nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .topbar-nav a {
+            color: var(--das-white);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: opacity 0.2s;
+        }
+
+        .topbar-nav a:hover,
+        .topbar-nav a.active {
+            text-decoration: underline;
+        }
+        /*
+        .topbar-profile-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--das-white);
+            color: var(--das-red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            cursor: pointer;
+        }*/
+
+        /* --- App Main Layout --- */
+        .app-container {
+            display: flex;
+            min-height: calc(100vh - 60px);
+        }
+
+        /* --- Sidebar Styling --- */
+        .sidebar {
+            width: 240px;
+            background-color: #ECECEC;
+            padding: 2rem 1rem;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            border-right: 1px solid #E0E0E0;
+        }
+
+        .sidebar-header {
+            margin-bottom: 2rem;
+            padding-left: 0.5rem;
+        }
+
+        .sidebar-header h2 {
+            color: var(--das-red);
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+
+        .sidebar-header .student-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0.2rem 0;
+            color: #333333;
+        }
+
+        .sidebar-header .back-link {
+            color: var(--das-grey);
+            font-size: 0.8rem;
+            text-decoration: underline;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .sidebar-menu a {
+            text-decoration: underline;
+            color: #333333;
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 0.6rem 1rem;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .sidebar-menu a:hover {
+            background-color: #E0E0E0;
+        }
+
+        .sidebar-menu a.active {
+            background-color: var(--das-red);
+            color: var(--das-white);
+        }
+
+        /* --- Main Content Area --- */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--das-white);
+            padding: 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .report-header h1 {
+            color: var(--das-red);
+            margin: 0 0 0.5rem 0;
+            font-size: 1.8rem;
+        }
+
+        .student-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .student-meta {
+            color: var(--das-grey);
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 0.2rem;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            background: var(--das-light-grey);
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0 2rem 0;
+            font-size: 0.95rem;
+        }
+
+        .meta-grid div span {
+            color: var(--das-grey);
+            display: block;
+            font-size: 0.85rem;
+        }
+
+        .filter-form {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1rem 0;
+            background: var(--das-light-grey);
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+        }
+
+        .filter-form select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-color: #FFFFFF;
+            border: 1px solid #555555;
+            border-radius: 0; /* Sharp edges */
+            padding: 0.6rem 2.2rem 0.6rem 0.9rem;
+            font-family: 'Figtree', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #333333;
+            cursor: pointer;
+            
+            /* Custom SVG down arrow icon */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path fill="%20222222" d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 0.8rem center;
+            background-size: 14px;
+        }
+
+        .btn-filter {
+            background-color: var(--das-red);
+            color: var(--das-white);
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* --- Table Styling --- */
+        h2.section-title {
+            color: var(--das-grey);
+            font-size: 1.25rem;
+            border-bottom: 2px solid var(--das-light-grey);
+            padding-bottom: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+        }
+
+        .report-table td {
+            text-align: left;
+            padding: 0.8rem 0.5rem;
+            border-bottom: 1px solid #EEEEEE;
+        }
+
+        .semester-banner td {
+            background-color: #F8F9FA;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--das-red);
+            padding: 1rem 0.5rem 0.4rem 0.5rem;
+            border-top: 3px solid var(--das-red);
+            border-bottom: none;
+        }
+
+        .semester-sub-header th {
+            text-align: left;
+            padding: 0.6rem 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #111111;
+            background-color: #F8F9FA;
+            border-bottom: 2px solid #222222 !important;
+        }
+
+        .component-cell {
+            font-weight: 700;
+            vertical-align: middle;
+            background-color: #FAFAFA;
+            border-right: 1px solid #EEEEEE;
+        }
+
+        .band-pill {
+            background-color: #EAEAEA;
+            color: var(--das-grey);
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+
+        .pass-count-pill {
+            background-color: var(--badge-pass-bg);
+            color: var(--badge-pass-text);
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+
+        .badge-pass {
+            background-color: var(--badge-pass-bg);
+            color: var(--badge-pass-text);
+            padding: 0.25rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+
+        .badge-warn {
+            background-color: var(--badge-warn-bg);
+            color: var(--badge-warn-text);
+            padding: 0.25rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+
+        .remarks-container {
+            padding: 0.5rem 0;
+        }
+
+        .remarks-input {
+            width: 100%;
+            min-height: 48px;
+            padding: 0.5rem;
+            border: 1px solid #CCCCCC;
+            border-radius: 4px;
+            font-family: 'Figtree', sans-serif;
+            font-size: 0.9rem;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        .btn-submit {
+            background-color: var(--das-red);
+            color: var(--das-white);
+            border: none;
+            padding: 0.9rem 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
+
+        .btn-ai {
+            background-color: #2b579a;
+            color: #ffffff;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-ai:hover {
+            background-color: #1e3d6e;
+        }
+
+        .btn-ai:disabled {
+            background-color: #8fa2c1;
+            cursor: not-allowed;
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 12mm;
+        }
+
+        @media print {
+            .topbar, .sidebar, .btn-submit, .no-print, .filter-form {
+                display: none !important;
+            }
+
+            html, body {
+                background: #FFFFFF !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
+                overflow: visible !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .app-container {
+                display: block !important;
+            }
+
+            .main-content {
+                padding: 0 !important;
+            }
+
+            .container {
+                box-shadow: none !important;
+                padding: 20px 25px !important;
+                margin: 0 auto !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                height: auto !important;
+                display: block !important;
+            }
+
+            .report-header, .meta-grid {
+                page-break-after: avoid;
+            }
+
+            .meta-grid {
+                border: 1px solid #E0E0E0;
+                margin-bottom: 1rem !important;
+                padding: 0.8rem 1rem !important;
+            }
+
+            .report-table {
+                width: 100% !important;
+            }
+
+            .report-table tr {
+                page-break-inside: avoid;
+            }
+
+            .semester-banner, .semester-sub-header {
+                page-break-after: avoid;
+            }
+
+            .remarks-input {
+                border: none !important;
+                padding: 0 !important;
+                background: transparent !important;
+                font-size: 0.9rem !important;
+            }
+        }
+            .ai-summary-card {
+                background-color: #F8F9FA;
+                border: 1px solid #E0E0E0;
+                border-left: 4px solid var(--das-red);
+                border-radius: 4px;
+                padding: 1.2rem 1.5rem;
+                margin: 1.5rem 0 2rem 0;
+            }
+
+            .ai-card-header h2 {
+                margin: 0 0 0.8rem 0;
+                font-size: 1.15rem;
+                color: var(--das-red);
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .ai-card-content {
+                font-size: 0.95rem;
+                line-height: 1.5;
+                color: #333333;
+            }
+
+            .ai-card-content ul {
+                margin: 0.5rem 0 0.8rem 1.2rem;
+                padding: 0;
+            }
+
+            .ai-card-content li {
+                margin-bottom: 0.3rem;
+            }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <header class="topbar no-print">
+        <div class="topbar-left">
+            <div class="topbar-logo">
+                DAS
+                <span>SINGAPORE</span>
+            </div>
+            <nav class="topbar-nav">
+                <a href="/bands">Bands</a>
+                <a href="/students" class="active">Students</a>
+            </nav>
+        </div>
+        <div class="topbar-profile-icon" title="User Profile">
+            <!-- add user icon-->
+        </div>
+    </header>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar no-print">
+            <div class="sidebar-header">
+                <h2>Profile</h2>
+                <div class="student-name"><%= student.studentName || student.studentId %></div>
+                <a href="/enrolment" class="back-link">&lt; Back to Enrolment</a>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="/students/<%= student.studentId %>">Dashboard</a>
+                <a href="/reports/student/<%= student.studentId %>" class="active">Progress</a>
+                <a href="/students/<%= student.studentId %>/info">Student Info</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content View -->
+        <main class="main-content">
+            <div class="container">
+                <!-- Header Info -->
+                <div class="report-header">
+                    <h1>Progress Report</h1>
+                    <p class="student-title">Student: <%= student.studentId %></p>
+                    <p class="student-meta">Current Band : <%= student.currentBand || 'N/A' %></p>
+                </div>
+
+                <!-- Filter Form & AI Button Row -->
+                <form method="GET" action="/reports/student/<%= student.studentId %>" class="filter-form">
+                    <label for="startSem">From:</label>
+                    <select name="startSem" id="startSem">
+                        <% availableSemesters.forEach(s => { %>
+                            <option value="<%= s.raw %>" <%= selectedStartSem === s.raw ? 'selected' : '' %>><%= s.label %></option>
+                        <% }) %>
+                    </select>
+
+                    <label for="endSem">To:</label>
+                    <select name="endSem" id="endSem">
+                        <% availableSemesters.forEach(s => { %>
+                            <option value="<%= s.raw %>" <%= selectedEndSem === s.raw ? 'selected' : '' %>><%= s.label %></option>
+                        <% }) %>
+                    </select>
+
+                    <button type="submit" class="btn-filter">Filter</button>
+                    <button type="button" id="btn-generate-ai" class="btn-ai">Generate AI Insights</button>
+                </form>
+
+                
+
+                <!-- Student Detail Cards -->
+                <div class="meta-grid">
+                    <div>
+                        <span>Date of Enrolment</span>
+                        <strong><%= student.formattedEnrolmentDate || student.enrolmentDate %></strong>
+                    </div>
+                    <div>
+                        <span>Age</span>
+                        <strong><%= student.age ? student.age + ' years old' : 'N/A' %></strong>
+                    </div>
+                    <div>
+                        <span>Centre</span>
+                        <strong><%= student.centreName || student.centreId || 'N/A' %></strong>
+                    </div>
+                </div>
+
+                <!-- Performance Table -->
+                <h2 class="section-title">Student Performance</h2>
+
+                <!-- AI Output Container (Hidden by default until generated) -->
+                <div id="ai-summary-card" class="ai-summary-card" style="display: none;">
+                    <div class="ai-card-header">
+                        <h2>Insights</h2>
+                    </div>
+                    <div class="ai-card-content" id="ai-card-content">
+                        <% if (typeof aiInsight !== 'undefined' && aiInsight) { %>
+                            <%- aiInsight %>
+                        <% } %>
+                    </div>
+                </div>
+
+                <script>
+                    document.getElementById('btn-generate-ai').addEventListener('click', async () => {
+                        const btn = document.getElementById('btn-generate-ai');
+                        const container = document.getElementById('ai-summary-card');
+                        const content = document.getElementById('ai-card-content');
+                        
+                        // 1. Get filter parameters directly from the DOM selects
+                        const startSemSelect = document.getElementById('startSem');
+                        const endSemSelect = document.getElementById('endSem');
+                        
+                        const startSem = startSemSelect ? startSemSelect.value : '';
+                        const endSem = endSemSelect ? endSemSelect.value : '';
+                        const studentId = '<%= student.studentId %>';
+
+                        // 2. UNHIDE the container and show loading state
+                        container.style.display = 'block'; 
+                        btn.disabled = true;
+                        btn.innerText = '⏳ Generating...';
+                        content.innerHTML = '<p><em>Analyzing student performance data...</em></p>';
+
+                        try {
+                            // 3. Request AI insight from backend endpoint
+                            const res = await fetch(`/reports/student/${studentId}/ai-insight?startSem=${startSem}&endSem=${endSem}`);
+                            const data = await res.json();
+                            
+                            if (data.aiInsight) {
+                                content.innerHTML = data.aiInsight;
+                            } else {
+                                content.innerHTML = '<p><em>Unable to generate insights at this time.</em></p>';
+                            }
+                        } catch (err) {
+                            console.error('Error fetching AI insight:', err);
+                            content.innerHTML = '<p><em>Error generating AI insight. Please try again.</em></p>';
+                        } finally {
+                            btn.disabled = false;
+                            btn.innerText = 'Generate AI Insights';
+                        }
+                    });
+                    </script>
+                
+                <table class="report-table">
+                    <tbody>
+                        <% if (typeof groupedBySemester !== 'undefined' && Object.keys(groupedBySemester).length > 0) { %>
+                            <% Object.keys(groupedBySemester).sort().reverse().forEach(semKey => { %>
+                                <% 
+                                const components = groupedBySemester[semKey]; 
+                                const compKeys = Object.keys(components);
+                                
+                                // Grab band from first assessment item in this semester
+                                let semBand = 'N/A';
+                                if (compKeys.length > 0 && components[compKeys[0]].length > 0) {
+                                    semBand = components[compKeys[0]][0].assessmentBand || components[compKeys[0]][0].band || 'N/A';
+                                }
+
+                                // Calculate total passes and total assessments for this semester
+                                let passCount = 0;
+                                let totalAssessments = 0;
+                                compKeys.forEach(compKey => {
+                                    components[compKey].forEach(item => {
+                                        totalAssessments++;
+                                        if (Number(item.score) >= Number(item.passingMark)) {
+                                            passCount++;
+                                        }
+                                    });
+                                });
+                                %>
+
+                                <!-- 1. Semester Title Row with Band -->
+                                <tr class="semester-banner">
+                                    <td colspan="4">
+                                        <%= typeof formatSemester === 'function' ? formatSemester(semKey) : semKey %>
+                                        <span class="band-pill">Band: <%= semBand %></span>
+                                        <span class="<%= passCount >= 4 ? 'badge-pass' : 'badge-warn' %>" style="margin-left: 0.5rem;">
+                                            Total Passes: <%= passCount %> / <%= totalAssessments %>
+                                    </td>
+                                </tr>
+
+                                <!-- 2. Column Headers -->
+                                <tr class="semester-sub-header">
+                                    <th style="width: 25%;">Component</th>
+                                    <th style="width: 35%;">Assessment</th>
+                                    <th style="width: 20%;">Score / Passing Score</th>
+                                    <th style="width: 20%;">Status</th>
+                                </tr>
+
+                                <!-- 3. Loop Through Components and Assessments -->
+                                <% compKeys.forEach((compKey) => { %>
+                                    <% const items = components[compKey]; %>
+                                    <% items.forEach((item, itemIndex) => { %>
+                                        <tr>
+                                            <!-- Rowspan bundles component rows together -->
+                                            <% if (itemIndex === 0) { %>
+                                                <td rowspan="<%= items.length %>" class="component-cell">
+                                                    <%= compKey %>
+                                                </td>
+                                            <% } %>
+
+                                            <td><%= item.assessmentType %></td>
+                                            <td><strong><%= item.score %></strong> / <%= item.passingMark || '-' %></td>
+                                            <td>
+                                                <% if (Number(item.score) >= Number(item.passingMark)) { %>
+                                                    <span class="badge-pass">Good</span>
+                                                <% } else { %>
+                                                    <span class="badge-warn">Needs Improvement</span>
+                                                <% } %>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+                                <% }) %>
+
+                                <!-- 4. Single Remarks Section for the entire Semester -->
+                                <tr>
+                                    <td colspan="4" style="padding: 0.8rem 0.5rem; background-color: #FAFAFA;">
+                                        <div class="remarks-container">
+                                            <strong>Semester Remarks:</strong>
+                                            <textarea class="remarks-input" placeholder="Add remarks for <%= typeof formatSemester === 'function' ? formatSemester(semKey) : semKey %>..."></textarea>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 2rem; color: var(--das-grey);">
+                                    No assessment records found.
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+
+                <!-- Confirm / Download PDF Button -->
+                <button class="btn-submit" onclick="window.print()">
+                    Confirm and Generate Progress Report
+                </button>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

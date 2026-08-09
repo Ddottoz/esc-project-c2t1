@@ -4,7 +4,7 @@ const pool = require('./db');
 
 async function getAllStudents() {
     const [rows] = await pool.query(
-        `SELECT studentId, studentName, enrollmentDate, currentSemester, age, centreId, schoolId, schoolLevel 
+        `SELECT studentId, firstName, enrolmentDate, currentSemester, age, centreId, schoolId, schoolLevel 
          FROM student`
     );
     return rows;
@@ -12,8 +12,12 @@ async function getAllStudents() {
 
 async function getStudentById(id) {
     const [rows] = await pool.query(
-        `SELECT studentId, studentName, enrollmentDate, currentSemester, age, centreId, schoolId, schoolLevel 
-         FROM student WHERE studentId = ?`, [id]
+        `SELECT 
+            s.*, 
+            c.centreName 
+         FROM student s
+         LEFT JOIN centre c ON s.centreId = c.centreId
+         WHERE s.studentId = ?`, [id]
     );
     if (rows.length === 0) return null;
     return rows[0];
@@ -31,9 +35,9 @@ async function addStudent(data) {
         
         await connection.query(
             `INSERT INTO student 
-            (studentId, studentName, enrollmentDate, currentSemester, age, centreId, schoolId, schoolLevel) 
+            (studentId, firstName, enrolmentDate, currentSemester, age, centreId, schoolId, schoolLevel) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [data.studentId, data.studentName, data.enrollmentDate, data.currentSemester, data.age, data.centreId, data.schoolId, data.schoolLevel]
+            [data.studentId, data.firstName, data.enrolmentDate, data.currentSemester, data.age, data.centreId, data.schoolId, data.schoolLevel]
         );
         
         await connection.commit();
@@ -48,9 +52,9 @@ async function addStudent(data) {
 
 async function updateStudent(id, data) {
     const [result] = await pool.query(
-        `UPDATE student SET studentName = ?, enrollmentDate = ?, currentSemester = ?, age = ?, centreId = ?, schoolId = ?, schoolLevel = ? 
+        `UPDATE student SET firsttName = ?, enrolmentDate = ?, currentSemester = ?, age = ?, centreId = ?, schoolId = ?, schoolLevel = ? 
          WHERE studentId = ?`,
-        [data.studentName, data.enrollmentDate, data.currentSemester, data.age, data.centreId, data.schoolId, data.schoolLevel, id]
+        [data.firstName, data.enrolmentDate, data.currentSemester, data.age, data.centreId, data.schoolId, data.schoolLevel, id]
     );
     return result.affectedRows > 0;
 }
@@ -58,8 +62,8 @@ async function updateStudent(id, data) {
 async function searchStudents(searchTerm) {
     const queryTerm = `%${searchTerm}%`;
     const [rows] = await pool.query(
-        `SELECT studentId, studentName, schoolLevel FROM student 
-         WHERE studentName LIKE ? OR schoolLevel LIKE ?`, 
+        `SELECT studentId, firstName, schoolLevel FROM student 
+         WHERE firstName LIKE ? OR schoolLevel LIKE ?`, 
         [queryTerm, queryTerm]
     );
     return rows;
@@ -96,11 +100,57 @@ async function setContactsForStudent(studentId, contacts) {
     }
 }
 
+//UC7
+async function generateReport(studentId, startSem, endSem) {
+    // 1. Fetch student info
+    const student = await getStudentById(studentId);
+    if (!student) throw new Error('Student Profile Not Found');
+
+    // 2. Fetch available semesters for the filter dropdown
+    const [semRows] = await pool.query(
+        `SELECT DISTINCT semesterId 
+         FROM studentAssessment 
+         WHERE studentId = ? 
+         ORDER BY semesterId DESC`,
+        [studentId]
+    );
+    const availableSemesters = semRows.map(r => r.semesterId);
+
+    // Default to available range if filters aren't explicitly passed
+    const activeStartSem = startSem || availableSemesters[availableSemesters.length - 1] || '202501';
+    const activeEndSem = endSem || availableSemesters[0] || '202602';
+
+    // 3. Fetch actual assessment performance records directly from studentAssessment
+    const [assessments] = await pool.query(
+        `SELECT 
+            sa.studentAssessmentId,
+            sa.semesterId,
+            sa.score,
+            a.component,
+            a.assessmentType,
+            a.passingMark,
+            a.band AS assessmentBand
+         FROM studentAssessment sa
+         JOIN assessment a ON sa.assessmentId = a.assessmentId
+         WHERE sa.studentId = ? 
+           AND sa.semesterId BETWEEN ? AND ?
+         ORDER BY sa.semesterId DESC`,
+        [studentId, activeStartSem, activeEndSem]
+    );
+
+    return {
+        student,
+        assessments,
+        availableSemesters
+    };
+}
+
 module.exports = {
     getAllStudents,
     getStudentById,
     studentExists,
     addStudent,
     updateStudent,
-    searchStudents
+    searchStudents,
+    generateReport
 };
