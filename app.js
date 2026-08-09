@@ -7,6 +7,7 @@ var logger = require('morgan');
 var usersRouter = require('./routes/users');
 var studentRouter = require('./routes/student');
 var lookupsRouter = require('./routes/lookups');
+var educatorStudentRouter = require('./routes/educator-student')
 var indexRouter = require('./routes/index');
 var loginRouter = require('./routes/login');
 var registerRouter = require("./routes/register");
@@ -28,6 +29,7 @@ app.use('/login', loginRouter);
 app.use('/users', usersRouter);
 app.use('/api/students', studentRouter);
 app.use('/api', lookupsRouter);
+app.use('/api/educators', educatorStudentRouter);
 app.use('/register/', registerRouter);
 
 

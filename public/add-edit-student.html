@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -7,70 +8,185 @@
     </head>
 
     <body>
-        <!-- can create separate file for navbar n include it after -->
-        <div class="navbar">DAS &mdash; Student Records</div>  
-
-        <div class="card">
-            <div class="load-existing">
-                <label for="existingStudentPicker">Editing an existing student? Select them here:</label>
-                <select id="existingStudentPicker"></select>
-            </div>
-
-            <h2 id="formTitle">Add Student</h2>
-            <form id="studentForm">
-                <label for="studentId">Student ID (Birth Certificate No.)</label>
-                <input type="text" id="studentId" required>
-                <div class="field-error" id="err-studentId"></div>
-
-                <label for="studentName">Student Name</label>
-                <input type="text" id="studentName" required>
-                <div class="field-error" id="err-studentName"></div>
-
-                <label for="dateOfBirth">Date of Birth</label>
-                <input type="date" id="dateOfBirth" required>
-                <div class="field-error" id="err-dateOfBirth"></div>
-
-                <label for="phoneNumber">Phone Number</label>
-                <input type="tel" id="phoneNumber">
-
-                <label for="email">Email Address</label>
-                <input type="email" id="email">
-
-                <label for="schLevel">School Level</label>
-                <select id="schLevel">
-                    <option value="">Select Level</option>
-                    <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option>
-                    <option>Primary 4</option><option>Primary 5</option><option>Primary 6</option>
-                    <option>Secondary 1</option><option>Secondary 2</option>
-                    <option>Secondary 3</option><option>Secondary 4</option>
-                </select>
-
-                <label for="schoolId">School</label>
-                <select id="schoolId"></select>
-
-                <label for="centreId">Centre</label>
-                <select id="centreId" required></select>
-                <div class="field-error" id="err-centreId"></div>
-
-                <label for="teacherId">Teacher</label>
-                <select id="teacherId" required></select>
-                <div class="field-error" id="err-teacherId"></div>
-
-                <label for="programmeAttending">Programme(s) Attending</label>
-                <div class="checkbox-group" id="programmeCheckboxes"></div>
-
-                <label>Contact Person(s)</label>
-                <div id="contactPersons"></div>
-                <button type="button" class="secondary small" id="addContactBtn">+ Add Contact Person</button>
-                
-                <div class="button-row">
-                    <button type="submit" id="submitBtn">Create Student</button>
+        <!-- temp navbar -->
+        <div class="navbar">
+            <div class="brand">
+                <img src="./images/das-logo.jpg" class="logo">
+                <div class="tabs">
+                    <a href="#">Bands</a>
+                    <a href="students-list.html" class="active">Students</a>
+                    <a href="#">Educators</a>
                 </div>
+            </div>
+            <span class="account-icon">&#9679;</span>
+        </div>
+
+        <div class="page">
+            <h1 id="pageTitle">Add Student</h1>
+
+            <form id="studentForm">
+                <h2 class="section-title">Basic Student Information</h2>
+                <div class="field-grid">
+                    <div>
+                        <label for="firstName">First Name <span class="required">*</span></label>
+                        <input type="text" id="firstName" placeholder="e.g. John" required>
+                        <div class="field-error" id="err-firstName"></div>
+                    </div>
+
+                    <div>
+                        <label for="lastName">Last Name <span class="required">*</span></label>
+                        <input type="text" id="lastName" placeholder="e.g. Tan" required>
+                        <div class="field-error" id="err-lastName"></div>
+                    </div>
+
+                    <div>
+                        <label for="nric">Student ID (NRIC) <span class="required">*</span></label>
+                        <input type="text" id="nric" placeholder="e.g. TXXXXXXXA" required>
+                        <div class="field-error" id="err-nric"></div>
+                    </div>
+                    <div></div>
+
+                    <div>
+                        <label for="dateOfBirth">Date of Birth <span class="required">*</span></label>
+                        <input type="date" id="dateOfBirth" required>
+                        <div class="field-error" id="err-dateOfBirth"></div>
+                    </div>
+
+                    <div id="ageDisplayWrap" class="hidden">
+                        <label>Age (Auto-filled)</label>
+                        <div class="static-value" id="ageDisplay"></div>
+                    </div>
+
+                    <div>
+                        <label for="schLevel">School Level <span class="required">*</span></label>
+                        <select id="schLevel" required>
+                            <option value="">Select School Level</option>
+                            <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option>
+                            <option>Primary 4</option><option>Primary 5</option><option>Primary 6</option>
+                            <option>Secondary 1</option><option>Secondary 2</option>
+                            <option>Secondary 3</option><option>Secondary 4</option>
+                        </select>
+
+                        <div class="field-error" id="err-schLevel"></div>
+                    </div>
+
+                    <div>
+                        <label for="schoolId">School <span class="required">*</span></label>
+                        <select id="schoolId" required></select>
+                        <div class="field-error" id="err-schoolId"></div>
+                    </div>
+                </div>
+
+                <!-- Contact Person(s) Title updated to section-title -->
+                <h2 class="section-title">Contact Person(s) <span class="required">*</span></h2>
+                <div class="field-error" id="err-contactPersons"></div>
+
+                <div id="contactPersons">
+                    <!-- Template for JavaScript rendering dynamic contact cards -->
+                    <div class="contact-card-item">
+                        <div class="contact-card-header">
+                            <span class="card-subtitle">Contact Person</span>
+                            <button type="button" class="remove-btn">✕ Remove</button>
+                        </div>
+
+                        <div class="field-grid">
+                            <div>
+                                <label>Contact Person's Name</label>
+                                <input type="text" placeholder="e.g. John Tan">
+                            </div>
+
+                            <div>
+                                <label>Contact Person's Phone Number</label>
+                                <input type="tel" placeholder="e.g. +65 9123 4567">
+                            </div>
+
+                            <div>
+                                <label>Contact Person's Email</label>
+                                <input type="email" placeholder="e.g. email@example.com">
+                            </div>
+
+                            <div>
+                                <label>Relationship to Student</label>
+                                <select class="relationship-select">
+                                    <option value="">Select Relationship</option>
+                                    <option value="father">Father</option>
+                                    <option value="mother">Mother</option>
+                                    <option value="others">Others</option>
+                                </select>
+                                <input type="text" class="specify-input hidden" placeholder="Please specify">
+                            </div>
+                        </div>
+
+                        <div class="checkbox-row">
+                            <input type="radio" id="primaryContact1" name="primary_contact" checked>
+                            <label for="primaryContact1">Mark as primary contact</label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-add-contact" id="addContactBtn">+ Add Contact Person</button>
+
+                <h2 class="section-title">DAS Programme Information</h2>
+
+                <div class="field-grid">
+                    <div>
+                        <label for="centreId">Centre <span class="required">*</span></label>
+                        <select id="centreId" required></select>
+                        <div class="field-error" id="err-centreId"></div>
+                    </div>
+
+                    <div>
+                        <label for="educatorId">Educator <span class="required">*</span></label>
+                        <select id="educatorId" required></select>
+                        <div class="field-error" id="err-educatorId"></div>
+                    </div>
+
+                    <div>
+                        <label for="bandLevel">Band <span class="required">*</span></label>
+                        <select id="bandLevel" required></select>
+                        <div class="field-error" id="err-bandLevel"></div>
+                    </div>
+
+                    <div>
+                        <label for="semesterId">Semester <span class="required">*</span></label>
+                        <select id="semesterId" required></select>
+                        <div class="field-error" id="err-semesterId"></div>
+                    </div>
+                </div>
+
+                <label for="remarks">Remarks</label>
+                <textarea id="remarks" rows="3"></textarea>
+
+                <div id="editOnlyInfo" class="hidden">
+                    <label>Enrollment Date</label>
+                    <div class="static-value" id="enrollmentDateDisplay"></div>
+
+                    <label class="section-label">Educator</label>
+                    <table class="educator-table">
+                        <thead>
+                            <tr><th>Educator Name</th><th>Centre</th><th>Role</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td id="educatorNameDisplay"></td>
+                                <td id="educatorCentreDisplay"></td>
+                                <td>Lead Educator</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="button-row">
+                    <button type="submit" id="submitBtn">Add Student</button>
+                </div>
+
                 <div id="statusMsg"></div>
             </form>
         </div>
 
         <script src="javascripts/studentajaxclient.js"></script>
+        <script src="javascripts/utils.js"></script>
         <script src="javascripts/add-edit-student.js"></script>
     </body>
 </html>
+
