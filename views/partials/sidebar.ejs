@@ -1,0 +1,54 @@
+<aside class="sidebar <%= type === 'band' ? 'band-sidebar' : 'student-sidebar' %>" id="sidebar">
+    <button class="sidebar-toggle" type="button" aria-label="Collapse sidebar" aria-expanded="true">
+        ‹☰
+    </button>
+
+    <% if (type === 'band') { %>
+        <div class="sidebar-heading">
+            <h1><%= band.name %></h1>
+            <p><%= band.year %> <%= band.semester %></p>
+        </div>
+
+        <nav aria-label="Band navigation">
+            <a class="<%= activeSide === 'assessments' ? 'active' : '' %>"
+               href="/bands/<%= band.id %>/assessments">
+                <span class="sidebar-icon assessment-sidebar-icon" aria-hidden="true"></span>
+                <strong>Assessments</strong>
+            </a>
+            <a class="<%= activeSide === 'enrollment' ? 'active' : '' %>"
+               href="/bands/<%= band.id %>/enrollment">
+                <span class="sidebar-icon enrollment-sidebar-icon" aria-hidden="true"></span>
+                <strong>Enrollment</strong>
+            </a>
+            <a class="<%= activeSide === 'settings' ? 'active' : '' %>"
+               href="/bands/<%= band.id %>/settings">
+                <span>⚙</span>
+                <strong>Band Settings</strong>
+            </a>
+        </nav>
+    <% } else { %>
+        <div class="sidebar-heading">
+            <h1>Profile</h1>
+            <p><%= student.name %></p>
+            <a class="back-link" href="/bands/<%= band.id %>/enrollment">‹ Back to Enrollment</a>
+        </div>
+
+        <nav aria-label="Student navigation">
+            <a class="<%= activeSide === 'dashboard' ? 'active' : '' %>"
+               href="/bands/<%= band.id %>/students/<%= student.id %>">
+                <span class="sidebar-icon dashboard-sidebar-icon" aria-hidden="true"></span>
+                <strong>Dashboard</strong>
+            </a>
+            <a class="<%= activeSide === 'progress' ? 'active' : '' %>"
+               href="/bands/<%= band.id %>/students/<%= student.id %>/progress">
+                <span class="sidebar-icon progress-sidebar-icon" aria-hidden="true"></span>
+                <strong>Progress</strong>
+            </a>
+            <a class="<%= activeSide === 'info' ? 'active' : '' %>"
+               href="/bands/<%= band.id %>/students/<%= student.id %>/info">
+                <span class="sidebar-icon student-info-icon" aria-hidden="true"></span>
+                <strong>Student Info</strong>
+            </a>
+        </nav>
+    <% } %>
+</aside>
