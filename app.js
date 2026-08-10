@@ -10,6 +10,7 @@ require('dotenv').config();
 var studentListRouter = require('./routes/studentlist'); // placeholder for global student list
 var studentRouter = require('./routes/student');
 var lookupsRouter = require('./routes/lookups');
+var educatorStudentRouter = require('./routes/educator-student')
 var indexRouter = require('./routes/index');
 var loginRouter = require('./routes/login');
 var registerRouter = require("./routes/register");
@@ -37,6 +38,7 @@ app.use('/login', loginRouter);
 app.use('/students', studentListRouter); // placeholder for global student list 
 app.use('/api/students', studentRouter);
 app.use('/api', lookupsRouter);
+app.use('/api/educators', educatorStudentRouter);
 app.use('/register/', registerRouter);
 app.use('/reports', reportRouter);
 app.use('/assessments/', assessmentRouter);
