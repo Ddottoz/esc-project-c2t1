@@ -102,46 +102,88 @@ async function setContactsForStudent(studentId, contacts) {
 
 //UC7
 async function generateReport(studentId, startSem, endSem) {
-    // 1. Fetch student info
-    const student = await getStudentById(studentId);
-    if (!student) throw new Error('Student Profile Not Found');
 
-    // 2. Fetch available semesters for the filter dropdown
+    const [studentRows] = await pool.query(
+        `SELECT 
+            s.*,
+            c.centreName
+         FROM student s
+         LEFT JOIN centre c ON s.centreId = c.centreId
+         WHERE s.studentId = ?`, 
+        [studentId]
+    );
+    const student = studentRows[0];
+
+    if (!student) {
+        throw new Error(`Student with ID ${studentId} not found`);
+    }
+
     const [semRows] = await pool.query(
         `SELECT DISTINCT semesterId 
          FROM studentAssessment 
-         WHERE studentId = ? 
-         ORDER BY semesterId DESC`,
+         WHERE studentId = ? AND semesterId IS NOT NULL
+         ORDER BY semesterId ASC`,
         [studentId]
     );
     const availableSemesters = semRows.map(r => r.semesterId);
+    const activeStartSem = startSem || availableSemesters[0] || '202501';
+    const activeEndSem = endSem || availableSemesters[availableSemesters.length - 1] || '202602';
 
-    // Default to available range if filters aren't explicitly passed
-    const activeStartSem = startSem || availableSemesters[availableSemesters.length - 1] || '202501';
-    const activeEndSem = endSem || availableSemesters[0] || '202602';
+    const [historicalBands] = await pool.query(
+        `SELECT 
+            sa.semesterId,
+            a.band AS derivedBand,
+            COUNT(*) as frequency
+         FROM studentAssessment sa
+         JOIN assessment a ON sa.assessmentId = a.assessmentId
+         WHERE sa.studentId = ?
+         GROUP BY sa.semesterId, a.band
+         ORDER BY sa.semesterId DESC, frequency DESC`,
+        [studentId]
+    );
 
-    // 3. Fetch actual assessment performance records directly from studentAssessment
+    const semBandMap = {};
+    for (const row of historicalBands) {
+        if (!semBandMap[row.semesterId]) {
+            semBandMap[row.semesterId] = row.derivedBand;
+        }
+    }
+
     const [assessments] = await pool.query(
         `SELECT 
             sa.studentAssessmentId,
             sa.semesterId,
             sa.score,
-            a.component,
+            sa.status,
+            sa.dueDate,
             a.assessmentType,
+            a.component,
+            ssb.band AS currentSemBand,
+            a.band AS testTargetBand,
             a.passingMark,
-            a.band AS assessmentBand
+            a.totalMark
          FROM studentAssessment sa
          JOIN assessment a ON sa.assessmentId = a.assessmentId
+         LEFT JOIN studentSemBand ssb 
+             ON sa.studentId = ssb.studentId 
+            AND sa.semesterId = ssb.semesterId
          WHERE sa.studentId = ? 
            AND sa.semesterId BETWEEN ? AND ?
          ORDER BY sa.semesterId DESC`,
         [studentId, activeStartSem, activeEndSem]
     );
 
+    const processedAssessments = assessments.map(row => ({
+        ...row,
+        assessmentBand: row.currentSemBand || semBandMap[row.semesterId] || row.testTargetBand
+    }));
+
     return {
         student,
-        assessments,
-        availableSemesters
+        assessments: processedAssessments,
+        availableSemesters,
+        activeStartSem,
+        activeEndSem
     };
 }
 

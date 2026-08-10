@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= student.name %> Dashboard</title>
+    <link rel="stylesheet" href="/stylesheets/bands.css">
+</head>
+
+<body>
+<div class="app-shell">
+    <%- include('../partials/top-nav', {activeTop: 'bands'}) %>
+    <%- include('../partials/sidebar', {type: 'student', activeSide: 'dashboard', student}) %>
+
+    <main class="content-page">
+        <h1><%= student.name %></h1>
+
+        <section>
+            <h2>Assessments</h2>
+            <div class="table-wrap assessment-table-wrap">
+                <table class="assessment-table">
+                    <colgroup>
+                        <col class="assessment-name-column">
+                        <col class="assessment-score-column">
+                        <col class="assessment-weight-column">
+                        <col class="assessment-status-column">
+                        <col class="assessment-submitted-column">
+                        <col class="assessment-actions-column">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Score</th>
+                        <th>Weight %</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <% assessments.forEach(assessment => { %>
+                        <tr>
+                            <td>
+                                <!-- TODO: This links to a placeholder until assessment details are implemented. -->
+                                <a class="assessment-name-link" href="/bands/<%= band.id %>/assessments/<%= assessment.id %>">
+                                    <%= assessment.name %>
+                                </a>
+                            </td>
+                            <td>
+                                <%= Number.isFinite(assessment.submission.score)
+                                    ? assessment.submission.score + '/' + assessment.maxPoints
+                                    : '--/' + assessment.maxPoints %>
+                            </td>
+                            <td class="numeric-cell"><%= assessment.weight %>%</td>
+                            <td class="status-cell">
+                                <span class="status-badge status-<%= assessment.submission.status.toLowerCase() %>">
+                                    <%= assessment.submission.status %>
+                                </span>
+                            </td>
+                            <td>
+                                <%= assessment.submission.submittedAt
+                                    ? new Date(assessment.submission.submittedAt).toLocaleString('en-SG')
+                                    : '--' %>
+                            </td>
+                            <td class="actions assessment-actions">
+                                <a href="/bands/<%= band.id %>/students/<%= student.id %>/assessments/<%= assessment.id %>/upload">
+                                    Upload
+                                </a>
+                                <a href="/bands/<%= band.id %>/students/<%= student.id %>/assessments/<%= assessment.id %>/review">
+                                    Review
+                                </a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="summary-row">
+                Status:
+                <strong class="<%= passed ? 'pass' : 'fail' %>"><%= passed ? 'PASS' : 'FAIL' %></strong>
+                (<%= earned %>% weighted score; <%= required %>% required)
+            </p>
+        </section>
+
+        <section class="past-bands-section">
+            <h2>Past Bands</h2>
+            <div class="table-wrap narrow">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Band</th>
+                        <th>Score</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <% pastBands.forEach(pastBand => { %>
+                        <tr>
+                            <td><%= pastBand.term %></td>
+                            <td>
+                                <% if (pastBand.bandId) { %>
+                                    <a class="past-band-link" href="/bands/<%= pastBand.bandId %>/assessments">
+                                        <%= pastBand.band %>
+                                    </a>
+                                <% } else { %>
+                                    <%= pastBand.band %>
+                                <% } %>
+                            </td>
+                            <td><span class="status-badge status-graded"><%= pastBand.status %></span></td>
+                        </tr>
+                    <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="/javascripts/bands.js"></script>
+</body>
+
+</html>
