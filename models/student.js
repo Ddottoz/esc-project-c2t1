@@ -1,65 +1,74 @@
 const pool = require('./db');
 
+// not finalised
+
 async function getAllStudents() {
     const [rows] = await pool.query(
-        'SELECT student_id AS studentId, student_name AS studentName, phone_number AS phoneNumber, email, date_of_birth as dateOfBirth, sch_level AS schLevel, school_id AS schoolId, centre_id AS centreId, teacher_id AS teacherId FROM Student'
+        `SELECT studentId, firstName, enrolmentDate, currentSemester, age, centreId, schoolId, schoolLevel 
+         FROM student`
     );
-    for (const s of rows) {
-        s.programmesAttending = await getProgrammesForStudent(s.studentId);
-        s.contactPersons = await getContactsForStudent(s.studentId);
-    }
     return rows;
 }
 
 async function getStudentById(id) {
     const [rows] = await pool.query(
-        `SELECT student_id AS studentId, student_name AS studentName, phone_number AS phoneNumber, email, date_of_birth AS dateOfBirth, sch_level AS schLevel, school_id AS schoolId, centre_id AS centreId, teacher_id AS teacherId FROM Student WHERE student_id = ?`, [id]
+        `SELECT 
+            s.*, 
+            c.centreName 
+         FROM student s
+         LEFT JOIN centre c ON s.centreId = c.centreId
+         WHERE s.studentId = ?`, [id]
     );
     if (rows.length === 0) return null;
-    const student = rows[0];
-    student.programmesAttending = await getProgrammesForStudent(id);
-    student.contactPersons = await getContactsForStudent(id);
-    return student;
+    return rows[0];
 }
 
-// UC4 "studentId alr exists" check
 async function studentExists(id) {
-    const [rows] = await pool.query(`SELECT student_id FROM Student WHERE student_id = ?`, [id]);
+    const [rows] = await pool.query(`SELECT studentId FROM student WHERE studentId = ?`, [id]);
     return rows.length > 0;
 }
 
 async function addStudent(data) {
-    const [result] = await pool.query(
-        `INSERT INTO Student
-        (student_id, student_name, phone_number, email, date_of_birth, sch_level, school_id, centre_id, teacher_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [data.studentId, data.studentName, data.phoneNumber, data.email, data.dateOfBirth, data.schLevel, data.schoolId, data.centreId, data.teacherId]
-    );
-    await setProgrammesForStudent(data.studentId, data.programmesAttending || []);
-    await setContactsForStudent(data.studentId, data.contactPersons || []);
-    return data.studentId;
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        
+        await connection.query(
+            `INSERT INTO student 
+            (studentId, firstName, enrolmentDate, currentSemester, age, centreId, schoolId, schoolLevel) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [data.studentId, data.firstName, data.enrolmentDate, data.currentSemester, data.age, data.centreId, data.schoolId, data.schoolLevel]
+        );
+        
+        await connection.commit();
+        return data.studentId;
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
 }
 
 async function updateStudent(id, data) {
     const [result] = await pool.query(
-        `UPDATE Student SET student_name = ?, phone_number = ?, email = ?, date_of_birth = ?, sch_level = ?, school_id = ?, centre_id = ?, teacher_id = ? WHERE student_id = ?`,
-        [data.studentName, data.phoneNumber, data.email, data.dateOfBirth, data.schLevel, data.schoolId, data.centreId, data.teacherId, id]
+        `UPDATE student SET firsttName = ?, enrolmentDate = ?, currentSemester = ?, age = ?, centreId = ?, schoolId = ?, schoolLevel = ? 
+         WHERE studentId = ?`,
+        [data.firstName, data.enrolmentDate, data.currentSemester, data.age, data.centreId, data.schoolId, data.schoolLevel, id]
     );
-    if (result.affectedRows === 0) return false;
-    await setProgrammesForStudent(id, data.programmesAttending || []);
-    await setContactsForStudent(id, data.contactPersons || []);
-    return true;
+    return result.affectedRows > 0;
 }
 
-// helpers for Student <-> Programme many-to-many rs
-async function getProgrammesForStudent(studentId) {
+async function searchStudents(searchTerm) {
+    const queryTerm = `%${searchTerm}%`;
     const [rows] = await pool.query(
-        `SELECT p.programme_name FROM StudentProgramme sp JOIN Programme p ON sp.programme_id = p.programme_id WHERE sp.student_id = ?`, [studentId]
+        `SELECT studentId, firstName, schoolLevel FROM student 
+         WHERE firstName LIKE ? OR schoolLevel LIKE ?`, 
+        [queryTerm, queryTerm]
     );
-    return rows.map((r) => r.programme_name);
+    return rows;
 }
 
-// replaces a student's programmes with the given list
-// delete-then-reinsert
 async function setProgrammesForStudent(studentId, programmeNames) {
     await pool.query(`DELETE FROM StudentProgramme WHERE student_id = ?`, [studentId]);
     if (programmeNames.length === 0) return;
@@ -91,4 +100,99 @@ async function setContactsForStudent(studentId, contacts) {
     }
 }
 
-module.exports = {getAllStudents, getStudentById, studentExists, addStudent, updateStudent};
+//UC7
+async function generateReport(studentId, startSem, endSem) {
+
+    const [studentRows] = await pool.query(
+        `SELECT 
+            s.*,
+            c.centreName
+         FROM student s
+         LEFT JOIN centre c ON s.centreId = c.centreId
+         WHERE s.studentId = ?`, 
+        [studentId]
+    );
+    const student = studentRows[0];
+
+    if (!student) {
+        throw new Error(`Student with ID ${studentId} not found`);
+    }
+
+    const [semRows] = await pool.query(
+        `SELECT DISTINCT semesterId 
+         FROM studentAssessment 
+         WHERE studentId = ? AND semesterId IS NOT NULL
+         ORDER BY semesterId ASC`,
+        [studentId]
+    );
+    const availableSemesters = semRows.map(r => r.semesterId);
+    const activeStartSem = startSem || availableSemesters[0] || '202501';
+    const activeEndSem = endSem || availableSemesters[availableSemesters.length - 1] || '202602';
+
+    const [historicalBands] = await pool.query(
+        `SELECT 
+            sa.semesterId,
+            a.band AS derivedBand,
+            COUNT(*) as frequency
+         FROM studentAssessment sa
+         JOIN assessment a ON sa.assessmentId = a.assessmentId
+         WHERE sa.studentId = ?
+         GROUP BY sa.semesterId, a.band
+         ORDER BY sa.semesterId DESC, frequency DESC`,
+        [studentId]
+    );
+
+    const semBandMap = {};
+    for (const row of historicalBands) {
+        if (!semBandMap[row.semesterId]) {
+            semBandMap[row.semesterId] = row.derivedBand;
+        }
+    }
+
+    const [assessments] = await pool.query(
+        `SELECT 
+            sa.studentAssessmentId,
+            sa.semesterId,
+            sa.score,
+            sa.status,
+            sa.dueDate,
+            a.assessmentType,
+            a.component,
+            ssb.band AS currentSemBand,
+            a.band AS testTargetBand,
+            a.passingMark,
+            a.totalMark
+         FROM studentAssessment sa
+         JOIN assessment a ON sa.assessmentId = a.assessmentId
+         LEFT JOIN studentSemBand ssb 
+             ON sa.studentId = ssb.studentId 
+            AND sa.semesterId = ssb.semesterId
+         WHERE sa.studentId = ? 
+           AND sa.semesterId BETWEEN ? AND ?
+         ORDER BY sa.semesterId DESC`,
+        [studentId, activeStartSem, activeEndSem]
+    );
+
+    const processedAssessments = assessments.map(row => ({
+        ...row,
+        assessmentBand: row.currentSemBand || semBandMap[row.semesterId] || row.testTargetBand
+    }));
+
+    return {
+        student,
+        assessments: processedAssessments,
+        availableSemesters,
+        activeStartSem,
+        activeEndSem
+    };
+}
+
+module.exports = {
+    getAllStudents,
+    getStudentById,
+    studentExists,
+    addStudent,
+    updateStudent,
+    searchStudents,
+    generateReport
+};
