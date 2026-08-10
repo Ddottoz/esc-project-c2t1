@@ -13,6 +13,7 @@ var lookupsRouter = require('./routes/lookups');
 var indexRouter = require('./routes/index');
 var loginRouter = require('./routes/login');
 var registerRouter = require("./routes/register");
+var assessmentRouter = require('./routes/assessment');
 var bandsRouter = require('./routes/bands');
 var uploadRouter = require('./routes/upload');
 
@@ -34,6 +35,7 @@ app.use('/students', studentListRouter); // placeholder for global student list
 app.use('/api/students', studentRouter);
 app.use('/api', lookupsRouter);
 app.use('/register/', registerRouter);
+app.use('/assessments/', assessmentRouter);
 app.use('/bands', bandsRouter);
 app.use('/upload', uploadRouter);
 app.use('/public/uploads', express.static('public/uploads'));
