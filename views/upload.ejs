@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Submission</title>
+
+    <link rel="stylesheet" href="/stylesheets/upload.css">
+
+</head>
+
+<body>
+
+<div class="page">
+
+    <!-- Header -->
+    <h1>Upload Submission: PA: Picture Description</h1>
+
+    <p class="student-name">student name</p>
+
+    <!-- Instructions -->
+    <section class="instructions">
+
+        <h2>Instructions</h2>
+
+        <p>PDF file only</p>
+
+    </section>
+
+    <!-- Submission -->
+    <h2>Upload PDF Document</h2>
+    
+
+    <form action="/upload/<%= studentAssessmentId %>" method="POST" enctype="multipart/form-data">
+
+        <div>
+            <label for="pdf">Select PDF File</label><br>
+
+            <input
+                type="file"
+                id="pdf"
+                name="pdf"
+                accept=".pdf,application/pdf"
+                required>
+        </div>
+
+        <br>
+
+
+        <div class="comment-panel">
+
+            <label class="comment-label">
+                Add Comments
+            </label>
+
+            <textarea rows="6" name="comment"></textarea>
+
+        </div>
+
+
+        <div class="button-group">
+
+            <button type="button" class="cancel">
+                Cancel
+            </button>
+
+            <!-- This submits the form -->
+            <button type="submit" class="submit">
+                Submit
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+<h2>Uploaded Files</h2>
+
+<% if (files && files.length > 0) { %>
+
+<ul>
+
+    <% files.forEach(file => { %>
+
+        <li>
+            <a href="<%= file.filepath %>" target="_blank">
+                <%= file.id %>
+            </a>
+        </li>
+
+    <% }) %>
+
+</ul>
+
+<% } else { %>
+
+<p>No files uploaded yet.</p>
+
+<% } %>
+<script>
+    const message = "<%= message %>";
+
+    if (message === "success") {
+        alert("Upload successful!");
+    }
+
+    if (message === "fail") {
+        alert("Upload failed!");
+    }
+</script>
+</body>
+</html>

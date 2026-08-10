@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/stylesheets/viewanalysis.css">
+</head>
+<body>
+  <% const placeholderUrl = "https://en.wikipedia.org/wiki/Internet_meme"; %>
+  <div
+    id="analysis-page"
+    class="analysis-page"
+    data-update-url="/viewanalysis/<%= analysis.submissionId %>"
+    data-approve-url="/viewanalysis/<%= analysis.submissionId %>/approve"
+  >
+    <header class="top-navigation">
+      <a href="/" class="logo-link" aria-label="DAS home">
+        <img src="/images/das-logo.jpg" alt="Dyslexia Association of Singapore logo" class="das-logo">
+      </a>
+
+      <nav class="navigation-links">
+        <a href="/bands" class="navigation-item active">Bands</a>
+        <a href="/students" class="navigation-item">Students</a>
+      </nav>
+
+      <a href="<%= placeholderUrl %>" class="profile-button" aria-label="Open account">
+        <img src="/images/profile_icon.webp" alt="" class="profile-icon" aria-hidden="true">
+      </a>
+    </header>
+
+    <div class="workspace">
+      <aside id="sidebar" class="sidebar">
+        <button id="sidebar-toggle" type="button" class="sidebar-toggle" aria-label="Toggle sidebar" title="Toggle sidebar">
+          <span class="toggle-arrow">‹</span>
+          <span class="toggle-menu">☰</span>
+        </button>
+
+        <section class="band-information">
+          <h2>Band <%= analysis.submission.band %></h2>
+          <h3><%= analysis.submission.academicYear %> Semester <%= analysis.submission.semesterNo %></h3>
+          <p><%= analysis.submission.assessmentType %></p>
+        </section>
+
+        <a
+          href="/submission/<%= analysis.submission.semesterId %>/<%= encodeURIComponent(analysis.submission.band) %>/<%= encodeURIComponent(String(analysis.submission.assessmentType).replace(/ /g, "_")) %>"
+          class="back-to-submissions"
+        >&lt; Back to Submissions</a>
+
+        <nav class="sidebar-navigation">
+          <a href="/upload" class="sidebar-link" title="Upload">
+            <span class="sidebar-icon">
+              <img src="/images/upload.png" alt="" class="upload-sidebar-icon" aria-hidden="true">
+            </span>
+            <span class="sidebar-link-label">Upload</span>
+          </a>
+
+          <a href="/viewanalysis/<%= analysis.submissionId %>" class="sidebar-link active" title="Review">
+            <span class="sidebar-icon"><img src="/images/review.png" alt="" class="review-sidebar-icon" aria-hidden="true"></span>
+            <span class="sidebar-link-label">Review</span>
+          </a>
+        </nav>
+      </aside>
+
+      <main class="review-main">
+        <header class="review-heading">
+          <h1>Review Analysis: <%= analysis.submission.assessmentType %></h1>
+          <p class="student-name"><%= analysis.submission.studentName %></p>
+        </header>
+
+        <div class="review-grid">
+          <section class="document-section" aria-label="Student response">
+            <div class="document-frame">
+              <div id="document-content" class="document-content"></div>
+            </div>
+          </section>
+
+          <section class="analysis-panel">
+            <section class="summary-section">
+              <h2>Diagnostic Summary</h2>
+              <label for="diagnostic-summary" class="visually-hidden">Diagnostic summary</label>
+              <textarea id="diagnostic-summary" class="diagnostic-summary" readonly><%= analysis.diagnosticSummary %></textarea>
+            </section>
+
+            <section class="categories-section">
+              <h2>View Error Categories</h2>
+              <div class="category-options">
+                <% availableCategories.forEach(function(category) { %>
+                  <label class="category-option">
+                    <input
+                      type="checkbox"
+                      name="error-category"
+                      value="<%= category %>"
+                      <%= analysis.errorCategories.some(function(selected) { return selected.toLowerCase() === category.toLowerCase(); }) ? "checked" : "" %>
+                      disabled
+                    >
+                    <span><%= category %></span>
+                  </label>
+                <% }); %>
+              </div>
+            </section>
+
+            <section class="selection-section">
+              <div class="selection-heading-row">
+                <h2>Selection</h2>
+                <button id="add-word-button" type="button" class="add-word-button">+ Add Item</button>
+              </div>
+
+              <h3>Detected Errors</h3>
+              <ul id="misspelt-word-list" class="word-list">
+                <% analysis.detectedErrors.forEach(function(error, index) { %>
+                  <li class="word-item">
+                    <span class="word-bullet">•</span>
+                    <input type="text" class="word-input" value="<%= error %>" readonly>
+                    <input type="text" class="error-category-input" value="<%= analysis.errorCategories[index] || "" %>" placeholder="Enter error category" readonly>
+                    <button type="button" class="remove-word-button" aria-label="Remove <%= error %>">×</button>
+                  </li>
+                <% }); %>
+              </ul>
+            </section>
+
+            <section class="rubrics-section">
+              <h2>Rubrics</h2>
+            
+              <% if (analysis.submission.rubrics === "default") { %>
+            
+                <ul class="rubrics-display">
+                  <li><strong>Content and Relevance:</strong> Response addresses the task clearly.</li>
+                  <li><strong>Language Use:</strong> Grammar, spelling and punctuation are generally accurate.</li>
+                  <li><strong>Organisation:</strong> Ideas are organised clearly and logically.</li>
+                  <li><strong>Overall Quality:</strong> Response demonstrates appropriate understanding and effort.</li>
+                </ul>
+            
+              <% } else { %>
+            
+                <div class="rubrics-display"><%= analysis.submission.rubrics %></div>
+            
+              <% } %>
+            </section>
+
+            <section class="mark-section">
+              <h2>Mark</h2>
+              <label for="mark-input" class="visually-hidden">Mark</label>
+              <input
+                id="mark-input"
+                class="mark-input"
+                type="text"
+                inputmode="decimal"
+                value="<%= analysis.submission.score === null || analysis.submission.score === undefined ? "" : analysis.submission.score %>"
+                <%= analysis.submissionId > 0 ? "readonly" : "disabled" %>
+                aria-label="Mark"
+              >
+
+              <div class="mark-information">
+                <p>
+                  Passing Mark:
+                  <span id="passing-mark"><%= analysis.submission.passingMark === null || analysis.submission.passingMark === undefined || analysis.submission.passingMark === "" ? "NOT AVAILABLE" : analysis.submission.passingMark %></span>
+                </p>
+
+                <span id="mark-result" class="mark-result not-available">NOT AVAILABLE</span>
+              </div>
+            </section>
+
+            <div id="view-actions" class="action-row view-actions">
+              <button id="edit-analysis-button" type="button" class="secondary-action-button">Edit Analysis</button>
+              <button
+                id="approve-analysis-button"
+                type="button"
+                class="primary-action-button <%= analysis.isAccepted ? "approved" : "" %>"
+                <%= analysis.isAccepted ? "disabled" : "" %>
+              ><%= analysis.isAccepted ? "Analysis Approved" : "Approve Analysis" %></button>
+            </div>
+
+            <div id="edit-actions" class="action-row edit-actions">
+              <button id="cancel-edit-button" type="button" class="secondary-action-button">Cancel</button>
+              <button id="save-analysis-button" type="button" class="primary-action-button">Save</button>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script id="analysis-page-data" type="application/json"><%- JSON.stringify({
+    submissionText: analysis.submission.submissionText,
+    detectedErrors: analysis.detectedErrors,
+    passingMark: analysis.submission.passingMark
+  }).replace(/</g, "\\u003c") %></script>
+  <script src="/javascripts/viewanalysis.js"></script>
+</body>
+</html>

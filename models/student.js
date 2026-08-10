@@ -204,4 +204,91 @@ async function getProgressData(studentId) {
     };
 }
 
-module.exports = {getAllStudents, getStudentById, getStudentsByEducator, nricExists, addStudent, updateStudent, deleteStudent, getAssessmentSubmissionsForStudent, getSemBandsForStudent, getProgressData};
+//UC7
+async function generateReport(studentId, startSem, endSem) {
+
+    const [studentRows] = await pool.query(
+        `SELECT 
+            s.*,
+            c.centreName
+         FROM student s
+         LEFT JOIN centre c ON s.centreId = c.centreId
+         WHERE s.studentId = ?`, 
+        [studentId]
+    );
+    const student = studentRows[0];
+
+    if (!student) {
+        throw new Error(`Student with ID ${studentId} not found`);
+    }
+
+    const [semRows] = await pool.query(
+        `SELECT DISTINCT semesterId 
+         FROM studentAssessment 
+         WHERE studentId = ? AND semesterId IS NOT NULL
+         ORDER BY semesterId ASC`,
+        [studentId]
+    );
+    const availableSemesters = semRows.map(r => r.semesterId);
+    const activeStartSem = startSem || availableSemesters[0] || '202501';
+    const activeEndSem = endSem || availableSemesters[availableSemesters.length - 1] || '202602';
+
+    const [historicalBands] = await pool.query(
+        `SELECT 
+            sa.semesterId,
+            a.band AS derivedBand,
+            COUNT(*) as frequency
+         FROM studentAssessment sa
+         JOIN assessment a ON sa.assessmentId = a.assessmentId
+         WHERE sa.studentId = ?
+         GROUP BY sa.semesterId, a.band
+         ORDER BY sa.semesterId DESC, frequency DESC`,
+        [studentId]
+    );
+
+    const semBandMap = {};
+    for (const row of historicalBands) {
+        if (!semBandMap[row.semesterId]) {
+            semBandMap[row.semesterId] = row.derivedBand;
+        }
+    }
+
+    const [assessments] = await pool.query(
+        `SELECT 
+            sa.studentAssessmentId,
+            sa.semesterId,
+            sa.score,
+            sa.status,
+            sa.dueDate,
+            a.assessmentType,
+            a.component,
+            ssb.band AS currentSemBand,
+            a.band AS testTargetBand,
+            a.passingMark,
+            a.totalMark
+         FROM studentAssessment sa
+         JOIN assessment a ON sa.assessmentId = a.assessmentId
+         LEFT JOIN studentSemBand ssb 
+             ON sa.studentId = ssb.studentId 
+            AND sa.semesterId = ssb.semesterId
+         WHERE sa.studentId = ? 
+           AND sa.semesterId BETWEEN ? AND ?
+         ORDER BY sa.semesterId DESC`,
+        [studentId, activeStartSem, activeEndSem]
+    );
+
+    const processedAssessments = assessments.map(row => ({
+        ...row,
+        assessmentBand: row.currentSemBand || semBandMap[row.semesterId] || row.testTargetBand
+    }));
+
+    return {
+        student,
+        assessments: processedAssessments,
+        availableSemesters,
+        activeStartSem,
+        activeEndSem
+    };
+}
+
+module.exports = {getAllStudents, getStudentById, getStudentsByEducator, nricExists, addStudent, updateStudent, deleteStudent, getAssessmentSubmissionsForStudent, getSemBandsForStudent, getProgressData, generateReport};
