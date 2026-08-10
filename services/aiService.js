@@ -14,7 +14,6 @@ const openai = new OpenAI({
  */
 async function generateStudentInsight(student, groupedBySemester) {
     try {
-        // 1. Format payload and clearly format semester terms & marks
         const summaryData = Object.entries(groupedBySemester || {}).map(([semKey, components]) => {
             const items = [];
             Object.entries(components).forEach(([compName, tests]) => {
