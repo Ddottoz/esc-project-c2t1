@@ -1,3 +1,4 @@
+--for logging purposes
 CREATE TABLE IF NOT EXISTS semesterBand (
     semesterBandId VARCHAR(64) NOT NULL,
     semesterId INT NOT NULL,

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/stylesheets/submission.css">
+</head>
+<body>
+  <% const placeholderUrl = "https://en.wikipedia.org/wiki/Internet_meme"; %>
+  <div
+    id="submission-page"
+    class="submission-page"
+  >
+    <header class="top-navigation">
+      <a href="/" class="logo-link" aria-label="DAS home">
+        <img src="/images/das-logo.jpg" alt="Dyslexia Association of Singapore logo" class="das-logo">
+      </a>
+
+      <nav class="navigation-links">
+        <a href="/bands" class="navigation-item active">Bands</a>
+        <a href="/students" class="navigation-item">Students</a>
+      </nav>
+
+      <a href="<%= placeholderUrl %>" class="profile-button" aria-label="Open account">
+        <img src="/images/profile_icon.webp" alt="" class="profile-icon" aria-hidden="true">
+      </a>
+    </header>
+
+    <div class="workspace">
+      <aside id="sidebar" class="sidebar">
+        <button id="sidebar-toggle" type="button" class="sidebar-toggle" aria-label="Toggle sidebar" title="Toggle sidebar">
+          <span class="toggle-arrow">‹</span>
+          <span class="toggle-menu">☰</span>
+        </button>
+
+        <section class="band-information">
+          <h2>Band<%= submissionPage.band %></h2>
+          <h3><%= submissionPage.semester.academicYear %> Semester <%= submissionPage.semester.semesterNo %></h3>
+          <p><%= submissionPage.assessmentType %></p>
+        </section>
+
+        <a
+          href="/assessments/semBand/<%= submissionPage.semester.semesterId %>/<%= encodeURIComponent(submissionPage.band) %>/assessments/view"
+          class="back-to-assessments"
+        >&lt; Back to Assessments
+        </a>
+
+        <nav class="sidebar-navigation">
+          <a href="<%= placeholderUrl %>" class="sidebar-link" title="Answer Key">
+            <span class="sidebar-icon">
+              <svg viewBox="0 0 24 24" class="nav-svg" aria-hidden="true">
+                <path d="M9.2 16.2L4.8 11.8l-1.4 1.4 5.8 5.8L21 7.2l-1.4-1.4-10.4 10.4z" fill="currentColor"></path>
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"></circle>
+              </svg>
+            </span>
+            <span class="sidebar-link-label">Answer Key</span>
+          </a>
+
+          <a
+            href="/submission/<%= submissionPage.semester.semesterId %>/<%= encodeURIComponent(submissionPage.band) %>/<%= encodeURIComponent(String(submissionPage.assessmentType).replace(/ /g, "_")) %>"
+            class="sidebar-link active"
+            title="Submissions"
+          >
+            <span class="sidebar-icon assessment-sidebar-icon" aria-hidden="true"></span>
+            <span class="sidebar-link-label">Submissions</span>
+          </a>
+        </nav>
+      </aside>
+
+      <main class="submissions-main">
+        <header class="submissions-heading">
+          <h1>Submissions: <%= submissionPage.assessmentType %></h1>
+        </header>
+
+        <div class="submission-table-wrapper">
+          <table class="submission-table">
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Score</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th aria-label="Upload"></th>
+                <th aria-label="Review"></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <% if (submissionPage.submissions.length === 0) { %>
+                <tr>
+                  <td colspan="6" class="empty-submissions">No submissions available.</td>
+                </tr>
+              <% } %>
+
+              <% submissionPage.submissions.forEach(function(submission) { %>
+                <tr>
+                  <td><%= submission.studentId %></td>
+                  <td><%= submission.score %></td>
+
+                  <td>
+                    <span class="status-label status-<%= submission.statusClass %>"><%= submission.status %></span>
+                  </td>
+
+                  <td><%= submission.dueDate %></td>
+
+                  <td>
+                    <a href="/upload" class="table-action table-action-enabled">
+                      <img src="/images/upload.png" alt="" class="upload-action-icon" aria-hidden="true">
+                      <span>Upload</span>
+                    </a>
+                  </td>
+
+                  <td>
+                    <% if (submission.hasAnalysis) { %>
+                      <a
+                        href="/viewanalysis/<%= submission.studentAssessmentId %>"
+                        class="table-action table-action-enabled"
+                      >
+                        <img src="/images/review.png" alt="" class="review-action-icon" aria-hidden="true">
+                        <span>Review</span>
+                      </a>
+                    <% } else { %>
+                      <span
+                        class="table-action table-action-disabled"
+                        aria-disabled="true"
+                      >
+                        <img src="/images/review.png" alt="" class="review-action-icon" aria-hidden="true">
+                        <span>Review</span>
+                      </span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/javascripts/submission.js"></script>
+</body>
+</html>

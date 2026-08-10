@@ -14,8 +14,11 @@ var indexRouter = require('./routes/index');
 var loginRouter = require('./routes/login');
 var registerRouter = require("./routes/register");
 var reportRouter = require("./routes/report")
+var assessmentRouter = require('./routes/assessment');
 var bandsRouter = require('./routes/bands');
 var uploadRouter = require('./routes/upload');
+var viewAnalysisRouter = require("./routes/viewAnalysisRoutes");
+var submissionRouter = require("./routes/submissionRoutes");
 
 var app = express();
 
@@ -36,10 +39,12 @@ app.use('/api/students', studentRouter);
 app.use('/api', lookupsRouter);
 app.use('/register/', registerRouter);
 app.use('/reports', reportRouter);
+app.use('/assessments/', assessmentRouter);
 app.use('/bands', bandsRouter);
 app.use('/upload', uploadRouter);
 app.use('/public/uploads', express.static('public/uploads'));
-
+app.use("/viewanalysis", viewAnalysisRouter);
+app.use("/submission", submissionRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
