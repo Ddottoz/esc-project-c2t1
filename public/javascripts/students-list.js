@@ -107,8 +107,9 @@ function renderRows() {
         const tr = document.createElement('tr');
         const fullName = escapeHtml(`${s.firstName || ''} ${s.lastName || ''}`);
 
+        // TODO: dashboard href
         tr.innerHTML = `
-            <td><a href="dashboard.html?id=${s.studentId}">${fullName}</a></td>
+            <td><a href="dashboard.html?id=${s.studentId}">${fullName}</a></td> 
             <td>${escapeHtml(s.currentBand)}</td>
             <td>${escapeHtml(s.centreName)}</td>
             <td>${escapeHtml(s.educatorName)}</td>
