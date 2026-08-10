@@ -8,8 +8,12 @@ const router = express.Router();
 
 
 
-router.get("/", uploadController.showAllUploads);
+router.get("/:studentAssessmentId", uploadController.showAllUploads);
 
-router.post("/", upload.single("pdf"), uploadController.uploadPdf);
+router.post(
+    "/:studentAssessmentId",
+    upload.single("pdf"),
+    uploadController.uploadPdf
+);
 
 module.exports = router;

@@ -11,6 +11,7 @@ const pool = mysql.createPool({
     connectionLimit: Number(process.env.DB_CONNECTION_LIMIT || 10)
 });
 
+
 // Connection test
 // (async () => {
 //     try {

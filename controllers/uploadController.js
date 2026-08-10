@@ -3,10 +3,11 @@ const uploadService = require("../services/uploadService");
 async function showAllUploads(req, res) {
 
     try {
-    
-        const files = await uploadService.getAllUploads();
+        const studentAssessmentId = req.params.studentAssessmentId;
+        const files = await uploadService.getAllUploads(studentAssessmentId);
 
         res.render("upload", {
+            studentAssessmentId: studentAssessmentId,
             files: files,
             message: req.query.message || ""
         });
@@ -28,9 +29,9 @@ async function uploadPdf(req, res) {
         if (!req.file) {
             return res.status(400).send("No PDF uploaded");
         }
-        console.log(req.body.comment);
-        await uploadService.uploadPdf(req.file, req.body.comment, 0);
-        res.redirect("/upload");
+        const studentAssessmentId = req.params.studentAssessmentId;
+        await uploadService.createAssessmentSubmission(studentAssessmentId, req.file, 0);
+        res.redirect("/upload/" + studentAssessmentId);
 
     } catch (error) {
 
