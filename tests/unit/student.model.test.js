@@ -5,13 +5,13 @@
  * behavior (commit/rollback/release) without touching a real database.
  */
 
-jest.mock('../models/db', () => ({
+jest.mock('../../models/db', () => ({
     query: jest.fn(),
     getConnection: jest.fn()
 }));
 
-const pool = require('../models/db');
-const StudentModel = require('../models/student');
+const pool = require('../../models/db');
+const StudentModel = require('../../models/student');
 
 afterEach(() => {
     jest.clearAllMocks();

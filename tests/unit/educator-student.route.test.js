@@ -8,9 +8,9 @@
 const request = require('supertest');
 const express = require('express');
 
-jest.mock('../models/student');
-const StudentModel = require('../models/student');
-const educatorStudentRouter = require('../routes/educator-student');
+jest.mock('../../models/student');
+const StudentModel = require('../../models/student');
+const educatorStudentRouter = require('../../routes/educator-student');
 
 const app = express();
 app.use(express.json());

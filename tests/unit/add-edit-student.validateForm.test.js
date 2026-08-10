@@ -11,7 +11,7 @@
  * public/add-edit-student.html.
  */
 
-const {validateForm} = require('../public/javascripts/add-edit-student.js');
+const {validateForm} = require('../../public/javascripts/add-edit-student.js');
 
 // minimal fix with just the elements validateForm actually touches
 

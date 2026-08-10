@@ -10,7 +10,7 @@
  * mirroring public/view-progress.html's real element IDs/classes.
  */
 
-const {renderProgressView, showEmptyState, wireDomRefs} = require('../public/javascripts/view-progress');
+const {renderProgressView, showEmptyState, wireDomRefs} = require('../../public/javascripts/view-progress');
 
 function buildProgressFixture() {
     document.body.innerHTML = `
