@@ -5,7 +5,7 @@ const errorsModel = require("../models/error");
 async function createAssessmentSubmission(studentAssessmentId, file, enableAnalysis=1) {
 
     const filePath = "/public/uploads/" + file.filename;
-    const analysisDisabledText = '{"transcription":"He ran.\\nFox hunts.","errors":[{"type":"Capitalization","original":"he ran.","correction":"He ran."}]}';
+    const analysisDisabledText = '{"transcription":"He ran.\\nFox hunts.","errors":[{"type":"Capitalization","original":"he ran.","correction":"He ran."}], "diagnosticSummary":"Test summary."}';
 ;
     const result = await uploadModel.createAssessmentSubmission(
         studentAssessmentId,
@@ -24,6 +24,7 @@ async function createAssessmentSubmission(studentAssessmentId, file, enableAnaly
             error.type
         );
     }
+    await uploadModel.createDiagnosticSummary(studentAssessmentId, analysis.diagnosticSummary);
 
     return result;
 

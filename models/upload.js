@@ -26,23 +26,27 @@ async function createAssessmentSubmission(
 
     return result;
 }
-// async function uploadPdf(submissionId, originalName, storedName, filePath, comment) {
+async function createDiagnosticSummary(
+    studentAssessmentId,
+    diagnosticSummary
+) {
+    const sql = `
+        INSERT INTO assessment_analysis
+        (submissionId, diagnosticSummary, isAccepted)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            diagnosticSummary = VALUES(diagnosticSummary),
+            isAccepted = VALUES(isAccepted)
+    `;
 
-//     const sql = `
-//         INSERT INTO pdf_files
-//         (original_name, stored_name, file_path, comment)
-//         VALUES (?, ?, ?, ?)
-//     `;
+    const [result] = await pool.query(sql, [
+        studentAssessmentId,
+        diagnosticSummary,
+        0
+    ]);
 
-//     const [result] = await pool.query(sql, [
-//         originalName,
-//         storedName,
-//         filePath,
-//         comment
-//     ]);
-
-//     return result;
-// }
+    return result;
+}
 
 async function getAllUploads(studentAssessmentId) {
 
@@ -60,25 +64,8 @@ async function getAllUploads(studentAssessmentId) {
     return rows;
 }
 
-// async function updateAnalysis(id, analysis) {
-
-//     const sql = `
-//         UPDATE pdf_files
-//         SET analysis = ?
-//         WHERE id = ?
-//     `;
-
-//     const [result] = await pool.query(sql, [
-//         JSON.stringify(analysis),
-//         id
-//     ]);
-
-//     return result;
-// }
-
 module.exports = {
     createAssessmentSubmission,
-    //uploadPdf,
-    //updateAnalysis,
+    createDiagnosticSummary,
     getAllUploads
 };

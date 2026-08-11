@@ -10,10 +10,57 @@
 </head>
 
 <body>
+<% const placeholderUrl = "https://en.wikipedia.org/wiki/Internet_meme"; %>
+<header class="top-navigation">
+    <a href="/" class="logo-link" aria-label="DAS home">
+    <img src="/images/das-logo.jpg" alt="Dyslexia Association of Singapore logo" class="das-logo">
+    </a>
+
+    <nav class="navigation-links">
+    <a href="/bands" class="navigation-item active">Bands</a>
+    <a href="/students" class="navigation-item">Students</a>
+    <a href="<%= placeholderUrl %>" class="navigation-item">Educators</a>
+    </nav>
+
+    <a href="<%= placeholderUrl %>" class="profile-button" aria-label="Open account">
+    <img src="/images/profile_icon.webp" alt="" class="profile-icon" aria-hidden="true">
+    </a>
+</header>
 
 <div class="page">
+    <aside id="sidebar" class="sidebar">
+        <button id="sidebar-toggle" type="button" class="sidebar-toggle" aria-label="Toggle sidebar" title="Toggle sidebar">
+            <span class="toggle-arrow">‹</span>
+            <span class="toggle-menu">☰</span>
+        </button>
 
-    <!-- Header -->
+        <section class="band-information">
+            <h2>Band <%= analysis.submission.band %></h2>
+            <h3><%= analysis.submission.academicYear %> Semester <%= analysis.submission.semesterNo %></h3>
+            <p><%= analysis.submission.assessmentType %></p>
+        </section>
+
+        <a
+            href="/submission/<%= analysis.submission.semesterId %>/<%= encodeURIComponent(analysis.submission.band) %>/<%= encodeURIComponent(String(analysis.submission.assessmentType).replace(/ /g, "_")) %>"
+            class="back-to-submissions"
+        >&lt; Back to Submissions</a>
+
+        <nav class="sidebar-navigation">
+            <a href="/upload/<%= analysis.submissionId %>" class="sidebar-link active" title="Upload">
+            <span class="sidebar-icon">
+                <img src="/images/upload.png" alt="" class="upload-sidebar-icon" aria-hidden="true">
+            </span>
+            <span class="sidebar-link-label">Upload</span>
+            </a>
+
+            <a href="/viewanalysis/<%= analysis.submissionId %>" class="sidebar-link" title="Review">
+            <span class="sidebar-icon"><img src="/images/review.png" alt="" class="review-sidebar-icon" aria-hidden="true"></span>
+            <span class="sidebar-link-label">Review</span>
+            </a>
+        </nav>
+    </aside>
+    <main>
+<!-- Header -->
     <h1>Upload Submission: PA: Picture Description</h1>
 
     <p class="student-name">student name</p>
@@ -72,6 +119,8 @@
         </div>
 
     </form>
+    </main>
+    
 
 </div>
 <h2>Uploaded Files</h2>
