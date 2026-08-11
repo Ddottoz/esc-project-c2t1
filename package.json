@@ -4,17 +4,28 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "test": "node --test"
+    "test": "jest",
+    "test:unit": "jest tests/unit",
+    "test:integration": "cross-env NODE_ENV=test jest tests/integration --runInBand",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "dotenv": "^17.4.2",
-    "ejs": "~2.6.1",
-    "express": "~4.16.1",
+    "ejs": "^6.0.1",
+    "express": "^4.22.2",
     "http-errors": "~1.6.3",
-    "morgan": "~1.9.1",
-    "mysql2": "^3.22.6"
+    "morgan": "^1.11.0",
+    "multer": "^2.2.0",
+    "mysql2": "^3.22.6",
+    "openai": "^7.4.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
+    "supertest": "^7.2.2"
   }
 }

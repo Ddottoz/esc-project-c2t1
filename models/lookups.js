@@ -2,32 +2,40 @@ const pool = require('./db');
 
 async function getAllCentres() {
     const [rows] = await pool.query(
-        'SELECT centre_id AS centreId, centre_name AS centreName FROM Centre ORDER BY centre_name'
+        'SELECT centreId, centreName FROM centre ORDER BY centreName'
     );
     return rows;
 }
 
 async function getAllSchools() {
     const [rows] = await pool.query(
-        'SELECT school_id AS schoolId, school_name AS schoolName FROM School ORDER BY school_name'
+        'SELECT schoolId, schoolName FROM school ORDER BY schoolName'
     );
     return rows;
 }
 
-async function getAllTeachers(centreId) {
+// filter by centreId if provided; otherwise return all educators
+async function getAllEducators(centreId) {
     const sql = centreId
-    ? 'SELECT teacher_id AS teacherId, teacher_name AS teacherName, centre_id AS centreId FROM Teacher WHERE centre_id = ? ORDER BY teacher_name'
-    : 'SELECT teacher_id AS teacherId, teacher_name AS teacherName, centre_id AS centreId FROM Teacher ORDER BY teacher_name';
+    ? 'SELECT educatorId, educatorName, centreId FROM educator WHERE centreId = ? ORDER BY educatorName'
+    : 'SELECT educatorId, educatorName, centreId FROM educator ORDER BY educatorName';
     const params = centreId ? [centreId] : [];
     const [rows] = await pool.query(sql, params);
     return rows;
 }
 
-async function getAllProgrammes() {
+async function getAllSemesters() {
     const [rows] = await pool.query(
-        'SELECT programme_id AS programmeId, programme_name AS programmeName FROM Programme ORDER BY programme_name'
+        `SELECT semesterId, academicYear, semesterNo FROM semester ORDER BY academicYear, semesterNo`
     );
     return rows;
 }
 
-module.exports = {getAllCentres, getAllSchools, getAllTeachers, getAllProgrammes};
+async function getAllBands() {
+    const [rows] = await pool.query(
+        `SELECT band FROM band ORDER BY band`
+    );
+    return rows;
+}
+
+module.exports = {getAllCentres, getAllSchools, getAllEducators, getAllSemesters, getAllBands};
