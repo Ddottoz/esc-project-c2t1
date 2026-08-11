@@ -7,15 +7,18 @@ async function createAssessmentSubmission(studentAssessmentId, file, enableAnaly
     const filePath = "/public/uploads/" + file.filename;
     const analysisDisabledText = '{"transcription":"He ran.\\nFox hunts.","errors":[{"type":"Capitalization","original":"he ran.","correction":"He ran."}], "diagnosticSummary":"Test summary."}';
 ;
+
+    const analysis = enableAnalysis ? await llmAdapter.analyzePdf(
+        file.path
+    ) : JSON.parse(analysisDisabledText);;
+
+    await errorsModel.deleteErrors(studentAssessmentId);
+
     const result = await uploadModel.createAssessmentSubmission(
         studentAssessmentId,
         new Date(),
         filePath
     );
-
-    const analysis = enableAnalysis ? await llmAdapter.analyzePdf(
-        file.path
-    ) : JSON.parse(analysisDisabledText);;
 
     for (const error of analysis.errors) {
         await errorsModel.insertError(
@@ -25,6 +28,8 @@ async function createAssessmentSubmission(studentAssessmentId, file, enableAnaly
         );
     }
     await uploadModel.createDiagnosticSummary(studentAssessmentId, analysis.diagnosticSummary);
+    await uploadModel.setAssessmentAssigned(studentAssessmentId);
+
 
     return result;
 

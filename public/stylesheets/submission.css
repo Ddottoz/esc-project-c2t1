@@ -61,7 +61,7 @@ button { cursor: pointer; }
 .sidebar-link.active { background-color: var(--red); color: var(--white); }
 .sidebar-link.active:hover { background-color: var(--red); }
 .sidebar-icon { width: 20px; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
-.nav-svg { width: 20px; height: 20px; display: block; }
+.answer-key-sidebar-icon { width: 20px; height: 20px; display: block; object-fit: contain; }
 .assessment-sidebar-icon { display: inline-block; background-color: var(--gray); -webkit-mask: url("/images/assessment_icon.png") center / contain no-repeat; mask: url("/images/assessment_icon.png") center / contain no-repeat; }
 .sidebar-link.active .assessment-sidebar-icon { background-color: var(--white); }
 .submission-page.sidebar-collapsed .band-information,

@@ -71,7 +71,17 @@
         <div class="review-grid">
           <section class="document-section" aria-label="Student response">
             <div class="document-frame">
-              <div id="document-content" class="document-content"></div>
+              <% if (analysis.submission.filepath) { %>
+                <iframe
+                  src="<%= analysis.submission.filepath %>"
+                  class="pdf-preview"
+                  title="Student submission PDF"
+                ></iframe>
+          
+                <div id="document-content" class="document-content" hidden></div>
+              <% } else { %>
+                <div id="document-content" class="document-content"></div>
+              <% } %>
             </div>
           </section>
 

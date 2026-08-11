@@ -21,6 +21,21 @@ async function insertError(
     return result;
 }
 
+async function deleteErrors(submissionId) {
+
+    const sql = `
+        DELETE FROM assessment_analysis_error
+        WHERE submissionId = ?
+    `;
+
+    const [result] = await pool.query(sql, [
+        submissionId
+    ]);
+
+    return result;
+}
+
 module.exports = {
-    insertError
+    insertError,
+    deleteErrors
 };

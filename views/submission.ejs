@@ -49,11 +49,9 @@
         <nav class="sidebar-navigation">
           <a href="<%= placeholderUrl %>" class="sidebar-link" title="Answer Key">
             <span class="sidebar-icon">
-              <svg viewBox="0 0 24 24" class="nav-svg" aria-hidden="true">
-                <path d="M9.2 16.2L4.8 11.8l-1.4 1.4 5.8 5.8L21 7.2l-1.4-1.4-10.4 10.4z" fill="currentColor"></path>
-                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"></circle>
-              </svg>
+              <img src="/images/answer_key.png" alt="" class="answer-key-sidebar-icon" aria-hidden="true">
             </span>
+                        
             <span class="sidebar-link-label">Answer Key</span>
           </a>
 
@@ -105,7 +103,7 @@
                   <td><%= submission.dueDate %></td>
 
                   <td>
-                    <a href="/upload" class="table-action table-action-enabled">
+                    <a href="/upload/<%= submission.studentAssessmentId %>" class="table-action table-action-enabled">
                       <img src="/images/upload.png" alt="" class="upload-action-icon" aria-hidden="true">
                       <span>Upload</span>
                     </a>

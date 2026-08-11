@@ -78,6 +78,7 @@ button { cursor: pointer; }
 .document-section, .analysis-panel { min-width: 0; }
 .document-frame { width: 100%; min-height: 625px; padding: 20px; border: 24px solid var(--gray); border-radius: 18px; background-color: var(--white); }
 .document-content { min-height: 520px; padding: 8px 0; color: #111111; font-size: clamp(29px, 2.35vw, 39px); line-height: 1.28; white-space: pre-wrap; }
+.pdf-preview {width: 100%; height: 520px; border: none; display: block;}
 .error-highlight { padding: 0 4px; background-color: var(--red); color: var(--white); }
 .analysis-panel h2 { margin: 0 0 8px; color: var(--red); font-size: 17px; font-weight: 600; }
 
