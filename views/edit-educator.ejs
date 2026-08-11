@@ -12,7 +12,10 @@
     <%- include('partials/top-nav', {activeTop: ''}) %>
 
     <main class="educator-page">
-        <h1>Edit Educator Information</h1>
+        <div class="page-heading">
+            <h1>Edit Educator Information</h1>
+            <a class="logout-link" href="/login/logout">Log out</a>
+        </div>
 
         <% if (message) { %>
             <p class="message"><%= message %></p>
@@ -45,8 +48,8 @@
             <div class="row">
                 <div class="field">
                     <label for="password">Password</label>
-                    <input type="password" id="password" value="password placeholder" disabled>
-                    <button type="button" class="link-button" id="showPasswordBtn">Show</button>
+                    <input type="password" id="password" value="0000000000" disabled>
+                    <small class="hint">Saved passwords are encrypted and cannot be shown.</small>
                 </div>
 
                 <div class="field">

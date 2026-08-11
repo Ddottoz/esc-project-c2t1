@@ -2,12 +2,15 @@ const express = require('express');
 const router = express.Router();
 const EducatorModel = require('../models/educator');
 
-// There is no login yet, so we always edit this educator.
-// Replace this with the logged in educator's id once auth is built.
-const CURRENT_EDUCATOR_ID = 2;
+// The logged-in educator's id is stored in a cookie when they log in.
+// Returns the id, or null if nobody is logged in.
+function loggedInEducatorId(req) {
+    const id = Number(req.cookies.educatorId);
+    return id ? id : null;
+}
 
-async function showPage(res, message) {
-    const educator = await EducatorModel.getEducatorById(CURRENT_EDUCATOR_ID);
+async function showPage(res, educatorId, message) {
+    const educator = await EducatorModel.getEducatorById(educatorId);
     if (!educator) return res.status(404).send('Educator not found');
 
     const name = EducatorModel.splitName(educator.educatorName);
@@ -21,7 +24,9 @@ async function showPage(res, message) {
 
 router.get('/', async (req, res, next) => {
     try {
-        await showPage(res, '');
+        const educatorId = loggedInEducatorId(req);
+        if (!educatorId) return res.redirect('/login');
+        await showPage(res, educatorId, '');
     } catch (err) {
         next(err);
     }
@@ -29,6 +34,9 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
     try {
+        const educatorId = loggedInEducatorId(req);
+        if (!educatorId) return res.redirect('/login');
+
         const firstName = (req.body.firstName || '').trim();
         const lastName = (req.body.lastName || '').trim();
         const email = (req.body.email || '').trim();
@@ -37,17 +45,17 @@ router.post('/', async (req, res, next) => {
 
         const error = EducatorModel.checkForm(firstName, email, newPassword, confirmPassword);
         if (error) {
-            return showPage(res, error);
+            return showPage(res, educatorId, error);
         }
-        if (await EducatorModel.emailTaken(email, CURRENT_EDUCATOR_ID)) {
-            return showPage(res, 'Another educator is already using that email');
+        if (await EducatorModel.emailTaken(email, educatorId)) {
+            return showPage(res, educatorId, 'Another educator is already using that email');
         }
 
-        await EducatorModel.updateEducator(CURRENT_EDUCATOR_ID, firstName, lastName, email);
+        await EducatorModel.updateEducator(educatorId, firstName, lastName, email);
         if (newPassword) {
-            await EducatorModel.updatePassword(CURRENT_EDUCATOR_ID, newPassword);
+            await EducatorModel.updatePassword(educatorId, newPassword);
         }
-        await showPage(res, 'Changes saved');
+        await showPage(res, educatorId, 'Changes saved');
     } catch (err) {
         next(err);
     }

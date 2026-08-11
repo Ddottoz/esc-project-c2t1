@@ -11,6 +11,22 @@ async function getEducatorById(id) {
     return rows[0];
 }
 
+// Checks an email and password against the database.
+// Returns the matching educator (without the password) when they are correct,
+// or null when the email is not found or the password is wrong.
+async function authenticate(email, password) {
+    const [rows] = await pool.query(
+        `SELECT educatorId, educatorName, email, passwordHash FROM educator WHERE email = ?`, [email]
+    );
+    if (rows.length === 0) return null;
+
+    const educator = rows[0];
+    const passwordMatches = await bcrypt.compare(password, educator.passwordHash);
+    if (!passwordMatches) return null;
+
+    return {educatorId: educator.educatorId, educatorName: educator.educatorName, email: educator.email};
+}
+
 // The table stores one educatorName, but the form shows First Name and Last Name.
 // Everything before the first space is the first name, the rest is the last name.
 function splitName(educatorName) {
@@ -62,4 +78,4 @@ async function updatePassword(id, newPassword) {
     await pool.query(`UPDATE educator SET passwordHash = ? WHERE educatorId = ?`, [hash, id]);
 }
 
-module.exports = {getEducatorById, splitName, joinName, checkForm, emailTaken, updateEducator, updatePassword};
+module.exports = {getEducatorById, authenticate, splitName, joinName, checkForm, emailTaken, updateEducator, updatePassword};

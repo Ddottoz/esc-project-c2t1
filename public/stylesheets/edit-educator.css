@@ -5,10 +5,22 @@
     padding: 35px 55px;
 }
 
+.page-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 25px;
+}
+
 .educator-page h1 {
     color: #555;
     font-size: 34px;
-    margin-bottom: 25px;
+}
+
+.logout-link {
+    color: var(--red);
+    font-weight: bold;
+    text-decoration: underline;
 }
 
 .educator-page h2 {
@@ -65,15 +77,10 @@
 
 /* BUTTONS */
 
-.link-button {
-    align-self: flex-end;
-    margin-top: 5px;
-    border: none;
-    background: none;
-    color: #555;
-    font-size: 14px;
-    text-decoration: underline;
-    cursor: pointer;
+.hint {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #777;
 }
 
 .grey-button {

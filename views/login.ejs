@@ -43,7 +43,11 @@
 
             <p>Enter your details below</p>
 
-            <form action="/api" method="GET">
+            <% if (error) { %>
+                <p class="login-error"><%= error %></p>
+            <% } %>
+
+            <form action="/login" method="POST">
 
                 <div class="input-group">
 
@@ -53,6 +57,7 @@
                         type="email"
                         name="email"
                         placeholder="Email"
+                        value="<%= email %>"
                         required>
 
                 </div>

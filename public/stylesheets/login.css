@@ -126,6 +126,17 @@ body{
     font-size:28px;
 }
 
+.login-error{
+
+    background:#fdecea;
+    color:#b3261e;
+    text-align:center;
+    padding:12px;
+    border-radius:12px;
+    margin-bottom:25px;
+    font-size:18px;
+}
+
 .forgot{
 
     text-align:right;
