@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap');
 
+:root {
+    --red: #C1272D;
+}
+
 * { 
     box-sizing: border-box; 
 }
@@ -14,54 +18,62 @@ body {
 /* ==========================================
    NAVBAR
    ========================================== */
-.navbar {
-    background: #C1272D;
-    color: #FFFFFF;
+.top-nav {
+    grid-column: 1/-1;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 32px;
-    height: 64px;
+    height: 78px;
+    background: var(--red);
+    color: white;
+    align-items: stretch;
 }
 
-.navbar .brand { 
+.top-nav .brand {
+    width: 100px;
+    padding: 8px;
+    background: var(--red);
+    display: grid;
+    place-items: center;
+}
+
+.top-nav .brand img {
+    width: 62px;
+    height: 62px;
+    object-fit: cover;
+}
+
+.top-nav nav {
     display: flex;
-    align-items: center;
-    gap: 32px;
-    height: 100%;
 }
 
-.navbar .logo {
-    max-height: 48px;
-    width: auto;
-    object-fit: contain;
-}
-
-.navbar .tabs {
-    display: flex;
-    height: 100%;
-}
-
-.navbar .tabs a {
-    color: #FFFFFF;
+.top-nav nav a {
+    padding: 0 34px;
+    display: grid;
+    place-items: center;
     text-decoration: none;
+    font-size: 20px;
     font-weight: 700;
-    font-size: 18px;
-    padding: 0 28px;
-    display: flex;
-    align-items: center;
-    height: 100%;
+    color: white;
 }
 
-.navbar .tabs a.active {
-    background: #FFFFFF;
-    color: #C1272D;
+.top-nav nav a.active {
+    color: var(--red);
+    background: white;
+    font-weight: 700;
 }
 
-.navbar .account-icon {
-    font-size: 28px;
-    color: #FFFFFF;
-    cursor: pointer;
+.top-nav .profile-icon {
+    margin-left: auto;
+    width: 78px;
+    display: grid;
+    place-items: center;
+    font-size: 0;
+}
+
+.top-nav .profile-icon img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
 }
 
 /* ==========================================

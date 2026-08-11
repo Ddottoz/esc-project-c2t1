@@ -84,7 +84,7 @@ function showEmptyState() {
 
 // hands off to UC7 page which renders actual report preview before educator downlaods it
 function triggerDownloadReport(id) {
-    window.location.href = `/viewanalysis/studentId=${id}`;
+    window.location.href = `/reports/student/${id}`;
 }
 
 // shows a status banner at the top of the card (errors, etc.)
@@ -104,7 +104,7 @@ function wireDomRefs() {
     nameEl = document.getElementById('studentName');
         bandEl = document.getElementById('studentBand');
         sidebarBandEl = document.getElementById('sidebarBand');
-        sidebarNameEl = document.getElementById('sidebarName');
+        sidebarNameEl = document.getElementById('sidebarStudentName');
 
         navDashboardEl = document.getElementById('navDashboard');
         navProgressEl = document.getElementById('navProgress');

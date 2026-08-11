@@ -8,6 +8,32 @@
     --bg: #F4F2F2;
     --border: #E7E3E3;
 }
+
+.analysis-page {
+    min-height: 100vh;
+}
+ 
+.workspace {
+    min-height: calc(100vh - 64px);
+    position: relative;
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    transition: grid-template-columns 0.25s ease;
+}
+ 
+#analysis-page.sidebar-collapsed .workspace {
+    grid-template-columns: 72px minmax(0, 1fr);
+}
+
+#analysis-page.sidebar-collapsed .sidebar-heading,
+#analysis-page.sidebar-collapsed .sidebar nav {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#analysis-page.sidebar-collapsed .toggle-arrow {
+    display: none;
+}
  
 * { box-sizing: border-box; }
  
@@ -28,233 +54,164 @@ body {
 /* ==========================================
      NAVBAR
   ========================================== */
-.navbar {
-    background: #C1272D;
-    color: #FFFFFF;
+.top-nav {
+    grid-column: 1/-1;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 32px;
-    height: 64px;
+    height: 78px;
+    background: var(--red);
+    color: white;
+    align-items: stretch;
 }
- 
-.navbar .brand {
-    display: flex;
-    align-items: center;
-    gap: 32px;
-    height: 100%;
-  }
- 
-.navbar .logo {
-    max-height: 48px;
-    width: auto;
-    object-fit: contain;
-}
- 
-.navbar .tabs {
-    display: flex;
-    height: 100%;
-}
- 
-.navbar .tabs a {
-    color: #FFFFFF;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 18px;
-    padding: 0 28px;
-    display: flex;
-    align-items: center;
-    height: 100%;
-}
- 
-.navbar .tabs a.active {
-    background: #FFFFFF;
-    color: #C1272D;
-}
- 
-.navbar .account-icon {
-    font-size: 28px;
-    color: #FFFFFF;
-    cursor: pointer;
-}
- 
-/* ==========================================
-     WORKSPACE / SIDEBAR
-  ========================================== */
-.analysis-page {
-    min-height: 100vh;
-}
- 
-.workspace {
-    /* 64px = .navbar's height, so the sidebar/main column fills the rest */
-    min-height: calc(100vh - 64px);
- 
-    position: relative;
+
+.top-nav .brand {
+    width: 100px;
+    padding: 8px;
+    background: var(--red);
     display: grid;
-    grid-template-columns: 355px minmax(0, 1fr);
- 
-    transition: grid-template-columns 0.25s ease;
+    place-items: center;
 }
- 
-/* Width after sidebar is collapsed */
-.analysis-page.sidebar-collapsed .workspace {
-    grid-template-columns: 102px minmax(0, 1fr);
+
+.top-nav .brand img {
+    width: 62px;
+    height: 62px;
+    object-fit: cover;
 }
- 
-.sidebar {
-    position: relative;
-    z-index: 10;
- 
-    min-height: calc(100vh - 64px);
-    padding: 42px 26px 28px 50px;
- 
-    background-color: var(--bg);
- 
-    transition: padding 0.25s ease, width 0.25s ease, box-shadow 0.25s ease;
-}
- 
-/* Sidebar padding after collapse */
-.analysis-page.sidebar-collapsed .sidebar {
-    padding: 42px 14px 24px;
-}
- 
-/* Hover-to-reveal: while collapsed, hovering the hamburger button expands
-   the sidebar as an overlay (absolute positioned, doesn't push .content-wrap)
-   until the mouse leaves. Requires :has() support (current Chrome/Edge/Firefox
-   — not older browsers). */
-.analysis-page.sidebar-collapsed .sidebar:hover {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 355px;
-    min-height: 100%;
-    padding: 42px 26px 28px 50px;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.12);
-}
- 
-.analysis-page.sidebar-collapsed .sidebar:hover .toggle-arrow {
-    transform: rotate(0deg);
-}
- 
-.analysis-page.sidebar-collapsed .sidebar:hover .band-information,
-.analysis-page.sidebar-collapsed .sidebar:hover .back-to-submissions {
-    display: block;
-}
- 
-.analysis-page.sidebar-collapsed .sidebar:hover .sidebar-navigation {
+
+.top-nav nav {
     display: flex;
 }
- 
-/* Collapse button */
-.sidebar-toggle {
-    position: absolute;
-    top: 28px;
-    right: 20px;
- 
-    padding: 0;
-    border: none;
- 
-    background-color: transparent;
-    color: var(--grey);
- 
-    font-size: 30px;
-    font-weight: 700;
- 
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-}
- 
-.toggle-arrow {
-    color: var(--red);
-    line-height: 1;
-    transition: transform 0.25s ease;
-}
- 
-.toggle-menu {
-    line-height: 1;
-}
- 
-.analysis-page.sidebar-collapsed .toggle-arrow {
-    transform: rotate(180deg);
-}
- 
-/* Hide any labelled sidebar content when collapsed — TODO: once real
-   sidebar content is added, give its text-bearing elements this class
-   (or add matching selectors here) so it hides correctly on collapse. */
-.analysis-page.sidebar-collapsed .sidebar-collapsible-label {
-    display: none;
-}
- 
-/* Band information panel */
-.band-information {
-    margin-top: 2px;
-}
- 
-.band-information h2 {
-    margin: 0 0 8px;
-    color: var(--red);
-    font-size: 38px;
-}
- 
-.band-information h3 {
-    margin: 0 0 8px;
-    color: var(--grey);
-    font-size: 24px;
-    font-weight: 600;
-}
- 
-/* Back link */
-.back-to-submissions {
-    display: inline-block;
- 
-    margin-top: 52px;
- 
-    color: var(--grey);
-    font-size: 14px;
-    font-weight: 700;
-}
- 
-/* Sidebar navigation */
-.sidebar-navigation {
-    margin-top: 24px;
- 
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
- 
-.sidebar-link {
-    padding: 10px 14px;
-    border-radius: 4px;
- 
-    color: var(--grey);
+
+.top-nav nav a {
+    padding: 0 34px;
+    display: grid;
+    place-items: center;
+    text-decoration: none;
     font-size: 20px;
     font-weight: 700;
-    text-decoration: underline;
+    color: white;
 }
- 
-.sidebar-link:hover {
-    background-color: #DDDDDD;
+
+.top-nav nav a.active {
+    color: var(--red);
+    background: white;
+    font-weight: 700;
 }
- 
-.sidebar-link.active {
-    background-color: var(--red);
-    color: var(--white);
+
+.top-nav .profile-icon {
+    margin-left: auto;
+    width: 78px;
+    display: grid;
+    place-items: center;
+    font-size: 0;
 }
- 
-.sidebar-link.active:hover {
-    background-color: var(--red);
+
+.top-nav .profile-icon img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
 }
- 
-/* Hide sidebar text content when collapsed */
-.analysis-page.sidebar-collapsed .band-information,
-.analysis-page.sidebar-collapsed .back-to-submissions,
-.analysis-page.sidebar-collapsed .sidebar-navigation {
-    display: none;
+
+.sidebar {
+    position: relative;
+    min-height: calc(100vh - 78px);
+    padding: 34px 24px;
+    background: #f4f4f4;
+    transition: width .2s;
+    overflow: hidden;
 }
- 
+
+.sidebar-toggle {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    border: 0;
+    background: none;
+    font-size: 26px;
+}
+
+.sidebar-heading h1 {
+    margin: 0;
+    color: #c1272d;
+    font-size: 28px;
+}
+
+.sidebar-heading p {
+    margin: 0 0 30px;
+    font-size: 22px;
+    white-space: nowrap;
+}
+
+.back-link {
+    display: block;
+    font-size: 12px;
+    margin: -28px 0 34px;
+}
+
+.sidebar nav {
+    display: grid;
+    gap: 7px;
+}
+
+.sidebar nav a {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 8px;
+    font-size: 20px;
+    white-space: nowrap;
+    text-decoration: none;
+    color: #635f5f;
+}
+
+.sidebar-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    object-fit: contain;
+}
+
+.dashboard-sidebar-icon {
+    display: inline-block;
+    background-color: #635f5f;
+    -webkit-mask: url('/images/dashboard_icon.png') center / contain no-repeat;
+    mask: url('/images/dashboard_icon.png') center / contain no-repeat;
+}
+
+.progress-sidebar-icon {
+    display: inline-block;
+    background-color: #635f5f;
+    -webkit-mask: url('/images/progress_icon.png') center / contain no-repeat;
+    mask: url('/images/progress_icon.png') center / contain no-repeat;
+}
+
+.student-info-icon {
+    width: 24px;
+    height: 24px;
+    margin-left: -2px;
+    margin-right: -2px;
+    display: inline-block;
+    background-color: #635f5f;
+    -webkit-mask: url('/images/student_icon.png') center / contain no-repeat;
+    mask: url('/images/student_icon.png') center / contain no-repeat;
+}
+
+.sidebar nav a.active .dashboard-sidebar-icon,
+.sidebar nav a.active .student-info-icon,
+.sidebar nav a.active .progress-sidebar-icon {
+    background-color: #fff;
+}
+
+.sidebar nav a.active {
+    background: #c1272d;
+    color: white;
+}
+
+/* matches your existing toggle mechanism (class on #analysis-page, not on .sidebar itself) */
+#analysis-page.sidebar-collapsed .sidebar {
+    width: 72px;
+    padding-inline: 12px;
+} 
  
 .content-wrap {
     padding: 24px 32px 48px;
