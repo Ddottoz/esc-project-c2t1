@@ -11,141 +11,144 @@
 
 <body>
 <% const placeholderUrl = "https://en.wikipedia.org/wiki/Internet_meme"; %>
-<header class="top-navigation">
-    <a href="/" class="logo-link" aria-label="DAS home">
-    <img src="/images/das-logo.jpg" alt="Dyslexia Association of Singapore logo" class="das-logo">
-    </a>
+<div id=""upload-page>
+    <header class="top-navigation">
+        <a href="/" class="logo-link" aria-label="DAS home">
+        <img src="/images/das-logo.jpg" alt="Dyslexia Association of Singapore logo" class="das-logo">
+        </a>
 
-    <nav class="navigation-links">
-    <a href="/bands" class="navigation-item active">Bands</a>
-    <a href="/students" class="navigation-item">Students</a>
-    <a href="<%= placeholderUrl %>" class="navigation-item">Educators</a>
-    </nav>
+        <nav class="navigation-links">
+        <a href="/bands" class="navigation-item active">Bands</a>
+        <a href="/students" class="navigation-item">Students</a>
+        <a href="<%= placeholderUrl %>" class="navigation-item">Educators</a>
+        </nav>
 
-    <a href="<%= placeholderUrl %>" class="profile-button" aria-label="Open account">
-    <img src="/images/profile_icon.webp" alt="" class="profile-icon" aria-hidden="true">
-    </a>
-</header>
+        <a href="<%= placeholderUrl %>" class="profile-button" aria-label="Open account">
+        <img src="/images/profile_icon.webp" alt="" class="profile-icon" aria-hidden="true">
+        </a>
+    </header>
 
-<div class="page">
-    <aside id="sidebar" class="sidebar">
-        <button id="sidebar-toggle" type="button" class="sidebar-toggle" aria-label="Toggle sidebar" title="Toggle sidebar">
-            <span class="toggle-arrow">‹</span>
-            <span class="toggle-menu">☰</span>
-        </button>
+    <div class="page">
+        <aside id="sidebar" class="sidebar">
+            <button id="sidebar-toggle" type="button" class="sidebar-toggle" aria-label="Toggle sidebar" title="Toggle sidebar">
+                <span class="toggle-arrow">‹</span>
+                <span class="toggle-menu">☰</span>
+            </button>
 
-        <section class="band-information">
-            <h2>Band <%= analysis.submission.band %></h2>
-            <h3><%= analysis.submission.academicYear %> Semester <%= analysis.submission.semesterNo %></h3>
-            <p><%= analysis.submission.assessmentType %></p>
+            <section class="band-information">
+                <h2>Band <%= analysis.submission.band %></h2>
+                <h3><%= analysis.submission.academicYear %> Semester <%= analysis.submission.semesterNo %></h3>
+                <p><%= analysis.submission.assessmentType %></p>
+            </section>
+
+            <a
+                href="/submission/<%= analysis.submission.semesterId %>/<%= encodeURIComponent(analysis.submission.band) %>/<%= encodeURIComponent(String(analysis.submission.assessmentType).replace(/ /g, "_")) %>"
+                class="back-to-submissions"
+            >&lt; Back to Submissions</a>
+
+            <nav class="sidebar-navigation">
+                <a href="/upload/<%= analysis.submissionId %>" class="sidebar-link active" title="Upload">
+                <span class="sidebar-icon">
+                    <img src="/images/upload.png" alt="" class="upload-sidebar-icon" aria-hidden="true">
+                </span>
+                <span class="sidebar-link-label">Upload</span>
+                </a>
+
+                <a href="/viewanalysis/<%= analysis.submissionId %>" class="sidebar-link" title="Review">
+                <span class="sidebar-icon"><img src="/images/review.png" alt="" class="review-sidebar-icon" aria-hidden="true"></span>
+                <span class="sidebar-link-label">Review</span>
+                </a>
+            </nav>
+        </aside>
+        <main>
+    <!-- Header -->
+        <h1>Upload Submission: PA: Picture Description</h1>
+
+        <p class="student-name">student name</p>
+
+        <!-- Instructions -->
+        <section class="instructions">
+
+            <h2>Instructions</h2>
+
+            <p>PDF file only</p>
+
         </section>
 
-        <a
-            href="/submission/<%= analysis.submission.semesterId %>/<%= encodeURIComponent(analysis.submission.band) %>/<%= encodeURIComponent(String(analysis.submission.assessmentType).replace(/ /g, "_")) %>"
-            class="back-to-submissions"
-        >&lt; Back to Submissions</a>
+        <!-- Submission -->
+        <h2>Upload PDF Document</h2>
+        
 
-        <nav class="sidebar-navigation">
-            <a href="/upload/<%= analysis.submissionId %>" class="sidebar-link active" title="Upload">
-            <span class="sidebar-icon">
-                <img src="/images/upload.png" alt="" class="upload-sidebar-icon" aria-hidden="true">
-            </span>
-            <span class="sidebar-link-label">Upload</span>
-            </a>
+        <form action="/upload/<%= studentAssessmentId %>" method="POST" enctype="multipart/form-data">
 
-            <a href="/viewanalysis/<%= analysis.submissionId %>" class="sidebar-link" title="Review">
-            <span class="sidebar-icon"><img src="/images/review.png" alt="" class="review-sidebar-icon" aria-hidden="true"></span>
-            <span class="sidebar-link-label">Review</span>
-            </a>
-        </nav>
-    </aside>
-    <main>
-<!-- Header -->
-    <h1>Upload Submission: PA: Picture Description</h1>
+            <div>
+                <label for="pdf">Select PDF File</label><br>
 
-    <p class="student-name">student name</p>
+                <input
+                    type="file"
+                    id="pdf"
+                    name="pdf"
+                    accept=".pdf,application/pdf"
+                    required>
+            </div>
 
-    <!-- Instructions -->
-    <section class="instructions">
-
-        <h2>Instructions</h2>
-
-        <p>PDF file only</p>
-
-    </section>
-
-    <!-- Submission -->
-    <h2>Upload PDF Document</h2>
-    
-
-    <form action="/upload/<%= studentAssessmentId %>" method="POST" enctype="multipart/form-data">
-
-        <div>
-            <label for="pdf">Select PDF File</label><br>
-
-            <input
-                type="file"
-                id="pdf"
-                name="pdf"
-                accept=".pdf,application/pdf"
-                required>
-        </div>
-
-        <br>
+            <br>
 
 
-        <div class="comment-panel">
+            <div class="comment-panel">
 
-            <label class="comment-label">
-                Add Comments
-            </label>
+                <label class="comment-label">
+                    Add Comments
+                </label>
 
-            <textarea rows="6" name="comment"></textarea>
+                <textarea rows="6" name="comment"></textarea>
 
-        </div>
+            </div>
 
 
-        <div class="button-group">
+            <div class="button-group">
 
-            <button type="button" class="cancel">
-                Cancel
-            </button>
+                <button type="button" class="cancel">
+                    Cancel
+                </button>
 
-            <!-- This submits the form -->
-            <button type="submit" class="submit">
-                Submit
-            </button>
+                <!-- This submits the form -->
+                <button type="submit" class="submit">
+                    Submit
+                </button>
 
-        </div>
+            </div>
 
-    </form>
-    </main>
-    
+        </form>
+        <h2>Uploaded Files</h2>
 
+        <% if (files && files.length > 0) { %>
+
+        <ul>
+
+            <% files.forEach(file => { %>
+
+                <li>
+                    <a href="<%= file.filepath %>" target="_blank">
+                        <%= file.id %>
+                    </a>
+                </li>
+
+            <% }) %>
+
+        </ul>
+
+        <% } else { %>
+
+        <p>No files uploaded yet.</p>
+
+        <% } %>
+        </main>
+        
+
+    </div>
 </div>
-<h2>Uploaded Files</h2>
 
-<% if (files && files.length > 0) { %>
-
-<ul>
-
-    <% files.forEach(file => { %>
-
-        <li>
-            <a href="<%= file.filepath %>" target="_blank">
-                <%= file.id %>
-            </a>
-        </li>
-
-    <% }) %>
-
-</ul>
-
-<% } else { %>
-
-<p>No files uploaded yet.</p>
-
-<% } %>
 <script>
     const message = "<%= message %>";
 

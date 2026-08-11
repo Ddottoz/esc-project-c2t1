@@ -34,7 +34,7 @@ async function uploadPdf(req, res) {
         }
         const studentAssessmentId = req.params.studentAssessmentId;
         await uploadService.createAssessmentSubmission(studentAssessmentId, req.file, 1);
-        res.redirect("/upload/" + studentAssessmentId);
+        res.redirect("/viewanalysis/" + studentAssessmentId);
 
     } catch (error) {
 
