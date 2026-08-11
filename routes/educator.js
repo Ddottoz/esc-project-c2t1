@@ -19,30 +19,38 @@ async function showPage(res, message) {
     });
 }
 
-router.get('/', async (req, res) => {
-    await showPage(res, '');
+router.get('/', async (req, res, next) => {
+    try {
+        await showPage(res, '');
+    } catch (err) {
+        next(err);
+    }
 });
 
-router.post('/', async (req, res) => {
-    const firstName = (req.body.firstName || '').trim();
-    const lastName = (req.body.lastName || '').trim();
-    const email = (req.body.email || '').trim();
-    const newPassword = req.body.newPassword;
-    const confirmPassword = req.body.confirmPassword;
+router.post('/', async (req, res, next) => {
+    try {
+        const firstName = (req.body.firstName || '').trim();
+        const lastName = (req.body.lastName || '').trim();
+        const email = (req.body.email || '').trim();
+        const newPassword = req.body.newPassword;
+        const confirmPassword = req.body.confirmPassword;
 
-    const error = EducatorModel.checkForm(firstName, email, newPassword, confirmPassword);
-    if (error) {
-        return showPage(res, error);
-    }
-    if (await EducatorModel.emailTaken(email, CURRENT_EDUCATOR_ID)) {
-        return showPage(res, 'Another educator is already using that email');
-    }
+        const error = EducatorModel.checkForm(firstName, email, newPassword, confirmPassword);
+        if (error) {
+            return showPage(res, error);
+        }
+        if (await EducatorModel.emailTaken(email, CURRENT_EDUCATOR_ID)) {
+            return showPage(res, 'Another educator is already using that email');
+        }
 
-    await EducatorModel.updateEducator(CURRENT_EDUCATOR_ID, firstName, lastName, email);
-    if (newPassword) {
-        await EducatorModel.updatePassword(CURRENT_EDUCATOR_ID, newPassword);
+        await EducatorModel.updateEducator(CURRENT_EDUCATOR_ID, firstName, lastName, email);
+        if (newPassword) {
+            await EducatorModel.updatePassword(CURRENT_EDUCATOR_ID, newPassword);
+        }
+        await showPage(res, 'Changes saved');
+    } catch (err) {
+        next(err);
     }
-    await showPage(res, 'Changes saved');
 });
 
 module.exports = router;
