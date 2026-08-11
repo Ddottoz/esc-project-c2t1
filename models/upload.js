@@ -64,8 +64,23 @@ async function getAllUploads(studentAssessmentId) {
     return rows;
 }
 
+async function setAssessmentAssigned(studentAssessmentId) {
+    const sql = `
+        UPDATE studentAssessment
+        SET status = 'Assigned'
+        WHERE studentAssessmentId = ?
+    `;
+
+    const [result] = await pool.query(sql, [
+        studentAssessmentId
+    ]);
+
+    return result;
+}
+
 module.exports = {
     createAssessmentSubmission,
     createDiagnosticSummary,
-    getAllUploads
+    getAllUploads,
+    setAssessmentAssigned
 };
