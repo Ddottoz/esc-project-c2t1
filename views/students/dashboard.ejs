@@ -63,20 +63,36 @@
                                     : '--' %>
                             </td>
                             <td class="actions assessment-actions">
-                                <% if (assessment.submission.studentAssessmentId) { %>
-                                    <a href="/bands/<%= band.id %>/students/<%= student.id %>/assessments/<%= assessment.id %>/upload">
-                                        Upload
-                                    </a>
-                                <% } else { %>
-                                    <span aria-disabled="true">Upload</span>
-                                <% } %>
-                                <% if (assessment.submission.studentAssessmentId && assessment.submission.hasAnalysis) { %>
-                                    <a href="/bands/<%= band.id %>/students/<%= student.id %>/assessments/<%= assessment.id %>/review">
-                                        Review
-                                    </a>
-                                <% } else { %>
-                                    <span aria-disabled="true">Review</span>
-                                <% } %>
+                                <div class="assessment-action-list">
+                                    <% if (assessment.submission.studentAssessmentId) { %>
+                                        <a
+                                            class="assessment-action assessment-action-enabled"
+                                            href="/bands/<%= band.id %>/students/<%= student.id %>/assessments/<%= assessment.id %>/upload"
+                                        >
+                                            <img src="/images/upload.png" alt="" class="upload-action-icon" aria-hidden="true">
+                                            <span>Upload</span>
+                                        </a>
+                                    <% } else { %>
+                                        <span class="assessment-action assessment-action-disabled" aria-disabled="true">
+                                            <img src="/images/upload.png" alt="" class="upload-action-icon" aria-hidden="true">
+                                            <span>Upload</span>
+                                        </span>
+                                    <% } %>
+                                    <% if (assessment.submission.studentAssessmentId && assessment.submission.hasAnalysis) { %>
+                                        <a
+                                            class="assessment-action assessment-action-enabled"
+                                            href="/bands/<%= band.id %>/students/<%= student.id %>/assessments/<%= assessment.id %>/review"
+                                        >
+                                            <img src="/images/review.png" alt="" class="review-action-icon" aria-hidden="true">
+                                            <span>Review</span>
+                                        </a>
+                                    <% } else { %>
+                                        <span class="assessment-action assessment-action-disabled" aria-disabled="true">
+                                            <img src="/images/review.png" alt="" class="review-action-icon" aria-hidden="true">
+                                            <span>Review</span>
+                                        </span>
+                                    <% } %>
+                                </div>
                             </td>
                         </tr>
                     <% }) %>

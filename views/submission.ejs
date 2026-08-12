@@ -75,10 +75,30 @@
           <table class="submission-table">
             <thead>
               <tr>
-                <th>Student ID</th>
-                <th>Score</th>
-                <th>Status</th>
-                <th>Due Date</th>
+                <th aria-sort="none">
+                  <button type="button" class="submission-sort-button" data-sort-key="name" data-sort-type="text">
+                    Name
+                    <span class="submission-sort-icon" aria-hidden="true"></span>
+                  </button>
+                </th>
+                <th aria-sort="none">
+                  <button type="button" class="submission-sort-button" data-sort-key="score" data-sort-type="number">
+                    Score
+                    <span class="submission-sort-icon" aria-hidden="true"></span>
+                  </button>
+                </th>
+                <th aria-sort="none">
+                  <button type="button" class="submission-sort-button" data-sort-key="status" data-sort-type="text">
+                    Status
+                    <span class="submission-sort-icon" aria-hidden="true"></span>
+                  </button>
+                </th>
+                <th aria-sort="none">
+                  <button type="button" class="submission-sort-button" data-sort-key="date" data-sort-type="date">
+                    Due Date
+                    <span class="submission-sort-icon" aria-hidden="true"></span>
+                  </button>
+                </th>
                 <th aria-label="Upload"></th>
                 <th aria-label="Review"></th>
               </tr>
@@ -91,16 +111,21 @@
                 </tr>
               <% } %>
 
-              <% submissionPage.submissions.forEach(function(submission) { %>
-                <tr>
-                  <td><%= submission.studentId %></td>
-                  <td><%= submission.score %></td>
+              <% submissionPage.submissions.forEach(function(submission, index) { %>
+                <tr class="submission-row" data-original-index="<%= index %>">
+                  <td data-sort-name="<%= submission.studentName.toLocaleLowerCase('en-SG') %>">
+                    <a
+                      class="student-name-link"
+                      href="/bands/<%= encodeURIComponent(submissionPage.semester.semesterBandId) %>/students/<%= encodeURIComponent(submission.studentId) %>"
+                    ><%= submission.studentName %></a>
+                  </td>
+                  <td data-sort-score="<%= typeof submission.score === 'number' ? submission.score : '' %>"><%= submission.score %></td>
 
-                  <td>
+                  <td data-sort-status="<%= submission.status.toLocaleLowerCase('en-SG') %>">
                     <span class="status-label status-<%= submission.statusClass %>"><%= submission.status %></span>
                   </td>
 
-                  <td><%= submission.dueDate %></td>
+                  <td data-sort-date="<%= submission.dueDateSort %>"><%= submission.dueDate %></td>
 
                   <td>
                     <a href="/upload/<%= submission.studentAssessmentId %>" class="table-action table-action-enabled">

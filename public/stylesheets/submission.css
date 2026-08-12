@@ -84,6 +84,19 @@ button { cursor: pointer; }
 .submission-table th:nth-child(4) { width: 17%; }
 .submission-table th:nth-child(5) { width: 13%; }
 .submission-table th:nth-child(6) { width: 13%; }
+.submission-sort-button { min-height: 24px; padding: 0; border: 0; background: transparent; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.submission-sort-icon { position: relative; width: 10px; height: 16px; display: inline-block; flex-shrink: 0; }
+.submission-sort-icon::before,
+.submission-sort-icon::after { content: ""; position: absolute; left: 2px; border-left: 3px solid transparent; border-right: 3px solid transparent; }
+.submission-sort-icon::before { top: 2px; border-bottom: 5px solid #999999; }
+.submission-sort-icon::after { bottom: 2px; border-top: 5px solid #999999; }
+th[aria-sort="ascending"] .submission-sort-icon::before { border-bottom-color: var(--red); }
+th[aria-sort="descending"] .submission-sort-icon::after { border-top-color: var(--red); }
+.submission-sort-button:hover,
+.submission-sort-button:focus-visible { color: var(--red); }
+.student-name-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.student-name-link:hover,
+.student-name-link:focus-visible { color: var(--red); }
 .status-label { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
 .status-graded { color: var(--green); background-color: #e5f7e9; }
 .status-assigned { color: var(--yellow); background-color: #fff4d4; }

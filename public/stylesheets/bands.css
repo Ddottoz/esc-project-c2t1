@@ -625,13 +625,54 @@ th {
     display: table-cell;
 }
 
-.assessment-actions a {
-    display: inline-block;
-    margin: 0 8px;
+.assessment-action-list {
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
 
-.assessment-actions a:first-child {
-    margin-left: 0;
+.assessment-actions .assessment-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.assessment-action .upload-action-icon {
+    width: 20px;
+    height: 15px;
+    display: block;
+    flex-shrink: 0;
+    object-fit: contain;
+}
+
+.assessment-action .review-action-icon {
+    width: 17px;
+    height: 17px;
+    display: block;
+    flex-shrink: 0;
+    object-fit: contain;
+}
+
+.assessment-action-enabled {
+    color: #111111;
+}
+
+.assessment-action-enabled:hover {
+    color: var(--red);
+}
+
+.assessment-action-disabled {
+    color: #a3a3a3;
+    cursor: not-allowed;
+    text-decoration-color: #a3a3a3;
+}
+
+.assessment-action-disabled img {
+    opacity: 0.38;
 }
 
 .assessment-name-link {

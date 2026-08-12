@@ -30,9 +30,19 @@ async function findBySemesterBandAndAssessmentType(semesterId, band, assessmentT
       `SELECT
          student_assessment.studentAssessmentId,
          student_assessment.studentId,
+         TRIM(CONCAT(
+           COALESCE(student.firstName, ''),
+           ' ',
+           COALESCE(student.lastName, '')
+         )) AS studentName,
          student_assessment.score,
          student_assessment.status,
          assessment.assessmentType,
+
+         DATE_FORMAT(
+           student_assessment.dueDate,
+           '%Y-%m-%d'
+         ) AS dueDateSort,
 
          DATE_FORMAT(
            student_assessment.dueDate,
@@ -52,6 +62,10 @@ async function findBySemesterBandAndAssessmentType(semesterId, band, assessmentT
        INNER JOIN assessment
          ON assessment.assessmentId =
             student_assessment.assessmentId
+
+       INNER JOIN student
+         ON student.studentId =
+            student_assessment.studentId
 
        LEFT JOIN assessment_analysis
          ON assessment_analysis.submissionId =
@@ -117,6 +131,11 @@ async function findBySemesterBandAndAssessmentType(semesterId, band, assessmentT
               row.studentId
             ),
 
+          studentName:
+            valueOrNA(
+              row.studentName
+            ),
+
           score:
             status.value === "Graded" &&
             hasValue(row.score)
@@ -133,6 +152,11 @@ async function findBySemesterBandAndAssessmentType(semesterId, band, assessmentT
             valueOrNA(
               row.dueDate
             ),
+
+          dueDateSort:
+            hasValue(row.dueDateSort)
+              ? row.dueDateSort
+              : "",
 
           hasAnalysis:
             Boolean(
