@@ -10,7 +10,7 @@
 </head>
 
 <body>
-<div id=""upload-page>
+<div id="upload-page">
     <header class="top-navigation">
         <a href="/bands" class="logo-link" aria-label="DAS home">
         <img src="/images/das-logo.jpg" alt="Dyslexia Association of Singapore logo" class="das-logo">
@@ -26,7 +26,7 @@
         </a>
     </header>
 
-    <div class="page">
+    <div class="workspace">
         <aside id="sidebar" class="sidebar">
             <button id="sidebar-toggle" type="button" class="sidebar-toggle" aria-label="Toggle sidebar" title="Toggle sidebar">
                 <span class="toggle-arrow">‹</span>
@@ -34,47 +34,46 @@
             </button>
 
             <section class="band-information">
-                <h2>Band <%= analysis.submission.band %></h2>
-                <h3><%= analysis.submission.academicYear %> Semester <%= analysis.submission.semesterNo %></h3>
-                <p><%= analysis.submission.assessmentType %></p>
+                <h2>Band <%= assessment.band %></h2>
+                <h3><%= assessment.academicYear %> Semester <%= assessment.semNo %></h3>
+                <p><%= assessment.assessmentType %></p>
             </section>
 
             <a
-                href="/submission/<%= analysis.submission.semesterId %>/<%= encodeURIComponent(analysis.submission.band) %>/<%= encodeURIComponent(String(analysis.submission.assessmentType).replace(/ /g, "_")) %>"
+                href="/submission/<%= assessment.semId %>/<%= encodeURIComponent(assessment.band) %>/<%= encodeURIComponent(String(assessment.assessmentType).replace(/ /g, "_")) %>"
                 class="back-to-submissions"
             >&lt; Back to Submissions</a>
 
             <nav class="sidebar-navigation">
-                <a href="/upload/<%= analysis.submissionId %>" class="sidebar-link active" title="Upload">
+                <a href="/upload/<%= assessment.studentAssessmentId %>" class="sidebar-link active" title="Upload">
                 <span class="sidebar-icon">
                     <img src="/images/upload.png" alt="" class="upload-sidebar-icon" aria-hidden="true">
                 </span>
                 <span class="sidebar-link-label">Upload</span>
                 </a>
 
-                <a href="/viewanalysis/<%= analysis.submissionId %>" class="sidebar-link" title="Review">
+                <a href="/viewanalysis/<%= assessment.studentAssessmentId %>" class="sidebar-link" title="Review">
                 <span class="sidebar-icon"><img src="/images/review.png" alt="" class="review-sidebar-icon" aria-hidden="true"></span>
                 <span class="sidebar-link-label">Review</span>
                 </a>
             </nav>
         </aside>
-        <main>
-    <!-- Header -->
-        <h1>Upload Submission: <%= analysis.submission.assessmentType %></h1>
+        <main class="review-main">
+        <h1 class="hh2">Upload Submission: <%= assessment.assessmentType %></h1>
 
-        <!-- <p class="student-name">student name</p> -->
+        <p class="student-name"><%= assessment.studentId %></p>
 
         <!-- Instructions -->
         <section class="instructions">
 
-            <h2>Instructions</h2>
+            <h2 class="hh2">Instructions</h2>
 
             <p>PDF file only</p>
 
         </section>
 
         <!-- Submission -->
-        <h2>Upload PDF Document</h2>
+        <h2 class="hh2">Upload PDF Document</h2>
         
 
         <form action="/upload/<%= studentAssessmentId %>" method="POST" enctype="multipart/form-data">
@@ -93,7 +92,7 @@
             <br>
 
 
-            <div class="comment-panel">
+            <!-- <div class="comment-panel">
 
                 <label class="comment-label">
                     Add Comments
@@ -101,7 +100,7 @@
 
                 <textarea rows="6" name="comment"></textarea>
 
-            </div>
+            </div> -->
 
 
             <div class="button-group">
@@ -160,3 +159,4 @@
 </script>
 </body>
 </html>
+
