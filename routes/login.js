@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var EducatorModel = require('../models/educator');
+var {setAuthCookie, clearAuthCookie} = require('../middleware/auth');
 
 /* Show the login page. */
 router.get('/', function(req, res, next) {
@@ -20,7 +21,7 @@ router.post('/', async function(req, res, next) {
       return res.render('login', {error: 'Incorrect email or password', email: email});
     }
 
-    res.cookie('educatorId', educator.educatorId);
+    setAuthCookie(res, educator.educatorId);
     // successful login goes straight to the Bands dashboard
     res.redirect('/bands');
   } catch (err) {
@@ -30,7 +31,7 @@ router.post('/', async function(req, res, next) {
 
 /* Log out: forget who is logged in and go back to the login page. */
 router.get('/logout', function(req, res, next) {
-  res.clearCookie('educatorId');
+  clearAuthCookie(res);
   res.redirect('/login');
 });
 
