@@ -768,6 +768,7 @@ th {
     display: grid;
     place-items: center;
     padding: 20px;
+    overflow-y: auto;
 }
 
 .modal-backdrop[hidden] {
@@ -809,15 +810,21 @@ th {
 
 .create-band-modal {
     width: min(600px, 100%);
-    min-height: 650px;
+    min-height: min(650px, calc(100vh - 40px));
+    min-height: min(650px, calc(100dvh - 40px));
+    max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
     padding: 0;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
     box-shadow: none;
 }
 
 .create-modal-body {
     padding: 32px 34px;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 .create-band-modal h2 {
@@ -885,6 +892,8 @@ th {
     gap: 10px;
     margin-top: auto;
     padding: 0 95px 14px;
+    flex-shrink: 0;
+    background: white;
 }
 
 .create-modal-actions .button {
@@ -1025,7 +1034,8 @@ th {
     }
 
     .create-band-modal {
-        min-height: min(630px, calc(100vh - 24px));
+        min-height: min(630px, calc(100vh - 40px));
+        min-height: min(630px, calc(100dvh - 40px));
     }
 
     .create-modal-body {

@@ -322,6 +322,16 @@ cursor:pointer;
 
 }
 
+.submit:disabled {
+background:#767676;
+cursor:wait;
+}
+
+body.upload-loading,
+body.upload-loading * {
+cursor:wait !important;
+}
+
 
 /* .page {
     display: flex;
