@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
-    createAssessment, updateAssessment, getAssessmentById, getAllAssessmentsFiltered, publishAssessment,
+    getSemAndBandBySemBandId, createAssessment, updateAssessment, getAssessmentById, getAllAssessmentsFiltered, publishAssessment,
     deleteAssessment, unpublishAssessment
 } = require('../models/assessment');
 
@@ -188,24 +188,45 @@ async function getAssessment(req, res) {
 // GET /assessments  (general template list/filter)
 async function getAssessments(req, res) {
     try {
-        const { semesterId } = req.params;
+        const { semesterBandId } = req.params;
 
-        if (!semesterId) {
-            return res.status(400).json({ message: 'semesterId is required' });
+        if (
+            typeof semesterBandId !== 'string' ||
+            semesterBandId.trim() === ''
+        ) {
+            return res.status(400).json({
+                message: 'semesterBandId is required'
+            });
         }
-        if (req.query.band && !validBands.includes(req.query.band.toUpperCase())) {
-            return res.status(400).json({ message: `band must be one of: ${validBands.join(', ')}` });
+
+        const semesterBand =
+            await getSemAndBandBySemBandId(
+                semesterBandId.trim()
+            );
+
+        if (!semesterBand) {
+            return res.status(404).json({
+                message: 'Semester band not found'
+            });
         }
 
-        const assessmentType = req.query.assessmentType || null;
-        const component = req.query.component || null;
-        const band = req.query.band ? req.query.band.toUpperCase() : null;
+        const { semesterId, band } = semesterBand;
 
-        const assessments = await getAllAssessmentsFiltered(Number(semesterId), assessmentType, component, band);
+        const assessmentType =
+            req.query.assessmentType?.trim() || null;
+
+        const component =
+            req.query.component?.trim() || null;
+
+        const assessments = await getAllAssessmentsFiltered(semesterId, assessmentType, component, band);
+
         return res.status(200).json({ data: assessments });
     } catch (err) {
-        console.error(err);
-        return res.status(500).json({ message: 'Failed to fetch assessments' });
+        console.error('Failed to fetch assessments:', err);
+
+        return res.status(500).json({
+            message: 'Failed to fetch assessments'
+        });
     }
 }
 
@@ -235,8 +256,10 @@ async function publish(req, res) {
 }
 
 async function renderBandAssessmentsPage(req, res) {
-    const { semesterId, band } = req.params;
-    res.render('assessmentsList', { semesterId, band });
+    const semesterBandId= req.params.semesterBandId;
+    const {semesterId, band} = await getSemAndBandBySemBandId(semesterBandId);
+
+    res.render('assessmentsList', {semesterId, band, semesterBandId});
 }
 
 module.exports = { addAssessment, editAssessment, removeAssessment, getAssessment, getAssessments, publish, renderBandAssessmentsPage, unpublish, validateAssessmentBody };

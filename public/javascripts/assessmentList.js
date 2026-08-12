@@ -1,21 +1,50 @@
+const semesterBandId = document.body.dataset.semesterBandId;
+
 const semesterId = document.body.dataset.semesterId;
+
 const band = document.body.dataset.band;
 
 async function loadAssessments() {
-    const params = new URLSearchParams();
+    try {
+        const params = new URLSearchParams();
 
-    document.querySelectorAll('.filterInput').forEach(input => {
-        if (input.value) params.append(input.name, input.value);
-    });
+        document
+            .querySelectorAll('.filterInput')
+            .forEach(input => {
+                if (input.value) {
+                    params.set(input.name, input.value);
+                }
+            });
 
-    // band still gets included, just now as a query param instead of a URL segment
-    if (band) params.append('band', band);
+        const queryString = params.toString();
 
-    const url = `/assessments/semBand/${semesterId}?${params.toString()}`;
-    const response = await fetch(url, { cache: 'no-store' });
-    const result = await response.json();
+        let url =
+            `/assessments/semBand/${
+                encodeURIComponent(semesterBandId)
+            }`;
 
-    renderTable(result.data);
+        if (queryString) {
+            url += `?${queryString}`;
+        }
+
+        const response = await fetch(url, {
+            cache: 'no-store'
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.message ||
+                'Failed to fetch assessments'
+            );
+        }
+
+        renderTable(result.data);
+    } catch (err) {
+        console.error(err);
+        alert(err.message);
+    }
 }
 
 // Opens the modal and fills in the read-only assessment info

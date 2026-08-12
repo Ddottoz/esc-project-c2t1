@@ -10,10 +10,10 @@ const {
     publish,
     unpublish,
     renderBandAssessmentsPage
-} = require('../controller/assessmentController');
+} = require('../controllers/assessmentController');
 
 // Template CRUD
-router.get('/semBand/:semesterId', getAssessments);              // GET    /?assessmentType=...&band=...
+router.get('/semBand/:semesterBandId', getAssessments);              // GET    /?assessmentType=...&band=...
 router.get('/:assessmentId', getAssessment);  // GET    //5
 router.post('/', addAssessment);                // POST   /
 router.put('/:assessmentId', editAssessment);  // PUT    //5
@@ -26,7 +26,6 @@ router.post('/:assessmentId/unpublish', unpublish);
 
 
 // GET /semesters/2/bands/A/
-
-router.get('/semBand/:semesterId/:band/assessments/view', renderBandAssessmentsPage);
+router.get('/:semesterBandId/view', renderBandAssessmentsPage);
 
 module.exports = router;
