@@ -7,7 +7,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 require('dotenv').config();
 
-var studentListRouter = require('./routes/studentlist'); // placeholder for global student list
+var studentListRouter = require('./routes/studentlist');
 var studentRouter = require('./routes/student');
 var lookupsRouter = require('./routes/lookups');
 var educatorStudentRouter = require('./routes/educator-student')
@@ -36,7 +36,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/login', loginRouter);
-app.use('/students', studentListRouter); // placeholder for global student list 
+app.use('/students', studentListRouter);
 app.use('/api/students', studentRouter);
 app.use('/api', lookupsRouter);
 app.use('/api/educators', educatorStudentRouter);

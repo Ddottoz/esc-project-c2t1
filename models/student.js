@@ -4,7 +4,7 @@ const pool = require('./db');
 async function getAllStudents() {
     console.log('[DEBUG] STARTING getAllStudents');
     const [rows] = await pool.query(
-        'SELECT s.studentId, s.firstName, s.lastName, s.nric, s.dateOfBirth, s.enrolmentDate, s.currentSemester, s.schoolLevel, s.centreId, s.schoolId, s.educatorId, s.currentBand, s.remarks, s.graduated, c.centreName, sc.schoolName, e.educatorName FROM student s LEFT JOIN centre c ON s.centreId = c.centreId LEFT JOIN school sc ON s.schoolId = sc.schoolId LEFT JOIN educator e ON s.educatorId = e.educatorId'
+        'SELECT s.studentId, s.firstName, s.lastName, s.nric, s.dateOfBirth, s.enrolmentDate, s.currentSemester, s.schoolLevel, s.centreId, s.schoolId, s.educatorId, s.currentBand, s.remarks, s.graduated, c.centreName, sc.schoolName, e.educatorName, sb.semesterBandId FROM student s LEFT JOIN centre c ON s.centreId = c.centreId LEFT JOIN school sc ON s.schoolId = sc.schoolId LEFT JOIN educator e ON s.educatorId = e.educatorId LEFT JOIN semesterBand sb ON sb.semesterId = s.currentSemester AND sb.band = s.currentBand'
     );
     if (rows.length === 0) return rows;
     // batch fetch contacts to avoid the N+1 query problem (1 round-trip vs N round-trips)

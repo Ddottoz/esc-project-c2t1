@@ -63,28 +63,17 @@ router.post('/', asyncRoute(async (req, res) => {
     res.redirect(`/bands/${band.id}/settings`);
 }));
 
-// TODO: replace this route with the assessments page
-router.get('/:bandId/assessments', requireBand, (req, res) => res.render('placeholder', {
-    pageTitle: 'Assessments',
-    message: 'This route is ready for the assessment-management feature.',
-    todo: 'Replace this placeholder with assessment data and creation workflows.',
-    layout: 'band',
-    activeSide: 'assessments'
-}));
+router.get('/:bandId/assessments', requireBand, (req, res) => {
+    res.redirect(`/assessments/${req.params.bandId}/view`);
+});
 
-// TODO: Replace this placeholder route with the assessment detail page.
 router.get('/:bandId/assessments/:assessmentId', requireBand, (req, res) => {
     const assessment = res.locals.band.assessments.find((item) => item.id === req.params.assessmentId);
     if (!assessment) {
         return res.status(404).render('error', {message: 'Assessment not found', error: {status: 404}});
     }
-    res.render('placeholder', {
-        pageTitle: assessment.name,
-        message: 'This assessment detail page is a placeholder.',
-        todo: `Implement the detail page for ${assessment.name}.`,
-        layout: 'band',
-        activeSide: 'assessments'
-    });
+    const type = encodeURIComponent(assessment.assessmentType.replace(/ /g, '_'));
+    res.redirect(`/submission/${res.locals.band.semesterId}/${encodeURIComponent(res.locals.band.bandCode)}/${type}`);
 });
 
 router.get('/:bandId/enrollment', requireBand, asyncRoute(async (req, res) => {
@@ -199,33 +188,28 @@ router.get('/:bandId/students/:studentId', requireBand, asyncRoute(async (req, r
     res.render('students/dashboard', {...dashboard, pastBands});
 }));
 
-function renderStudentPlaceholder(pageTitle) {
-    return asyncRoute(async (req, res) => {
-        const student = (await BandModel.getStudents()).find((item) => item.id === req.params.studentId);
-        if (!student) return res.status(404).render('error', {message: 'Student not found', error: {status: 404}});
-        res.render('placeholder', { // TODO: replace with the student profile 
-            pageTitle,
-            student,
-            message: `${pageTitle} is coming soon.`,
-            todo: `Implement the ${pageTitle.toLowerCase()} student profile section.`,
-            layout: 'student',
-            activeSide: pageTitle === 'Progress' ? 'progress' : 'info'
-        });
-    });
-}
-router.get('/:bandId/students/:studentId/progress', requireBand, renderStudentPlaceholder('Progress'));
-router.get('/:bandId/students/:studentId/info', requireBand, renderStudentPlaceholder('Student Info'));
+router.get('/:bandId/students/:studentId/progress', requireBand, (req, res) => {
+    res.redirect(`/reports/student/${encodeURIComponent(req.params.studentId)}`);
+});
+router.get('/:bandId/students/:studentId/info', requireBand, (req, res) => {
+    res.redirect(`/add-edit-student.html?id=${encodeURIComponent(req.params.studentId)}`);
+});
 router.get('/:bandId/students/:studentId/assessments/:assessmentId/:action', requireBand, (req, res) => {
-    const action = req.params.action === 'review' ? 'Review Assessment' : 'Upload Assessment';
-    res.render('placeholder', { // TODO: replace with assessment upload/review route
-        pageTitle: action,
-        message: 'This assessment workflow is a placeholder.',
-        todo: `Implement ${req.params.action} for assessment ${req.params.assessmentId}.`,
-        layout: 'standalone',
-        activeTop: 'bands',
-        backUrl: `/bands/${req.params.bandId}/students/${req.params.studentId}`,
-        backLabel: 'Back to Student Dashboard'
-    });
+    const dashboard = BandModel.getStudentDashboard(res.locals.band, req.params.studentId);
+    if (!dashboard) {
+        return res.status(404).render('error', {message: 'Enrollment not found', error: {status: 404}});
+    }
+    const assessment = dashboard.assessments.find((item) => item.id === req.params.assessmentId);
+    if (!assessment || !assessment.submission.studentAssessmentId) {
+        return res.status(404).render('error', {message: 'Student assessment not found', error: {status: 404}});
+    }
+    if (req.params.action === 'upload') {
+        return res.redirect(`/upload/${assessment.submission.studentAssessmentId}`);
+    }
+    if (req.params.action === 'review' && assessment.submission.hasAnalysis) {
+        return res.redirect(`/viewanalysis/${assessment.submission.studentAssessmentId}`);
+    }
+    return res.status(404).render('error', {message: 'Assessment analysis not found', error: {status: 404}});
 });
 
 module.exports = router;

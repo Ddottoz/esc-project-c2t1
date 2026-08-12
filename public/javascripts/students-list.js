@@ -106,10 +106,13 @@ function renderRows() {
     rows.forEach((s) => {
         const tr = document.createElement('tr');
         const fullName = escapeHtml(`${s.firstName || ''} ${s.lastName || ''}`);
+        const studentId = encodeURIComponent(s.studentId);
+        const studentUrl = s.semesterBandId
+            ? `/bands/${encodeURIComponent(s.semesterBandId)}/students/${studentId}`
+            : `/add-edit-student.html?id=${studentId}`;
 
-        // TODO: dashboard href
         tr.innerHTML = `
-            <td><a href="dashboard.html?id=${s.studentId}">${fullName}</a></td> 
+            <td><a href="${studentUrl}">${fullName}</a></td>
             <td>${escapeHtml(s.currentBand)}</td>
             <td>${escapeHtml(s.centreName)}</td>
             <td>${escapeHtml(s.educatorName)}</td>

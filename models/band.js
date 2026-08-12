@@ -129,8 +129,9 @@ async function getBand(id) {
             WHERE ssb.semesterId = ? AND ssb.band = ?
         `, [band.semesterId, band.bandCode]),
         pool.query(`
-            SELECT sa.studentId, sa.assessmentId, UPPER(sa.status) AS status,
-                   sa.score, latest.submittedAt
+            SELECT sa.studentId, sa.assessmentId, sa.studentAssessmentId,
+                   UPPER(sa.status) AS status, sa.score, latest.submittedAt,
+                   CASE WHEN analysis.submissionId IS NULL THEN 0 ELSE 1 END AS hasAnalysis
             FROM studentAssessment sa
             INNER JOIN assessment a ON a.assessmentId = sa.assessmentId
             INNER JOIN studentSemBand ssb
@@ -142,6 +143,8 @@ async function getBand(id) {
                 FROM assessmentSubmission
                 GROUP BY studentAssessmentId
             ) latest ON latest.studentAssessmentId = sa.studentAssessmentId
+            LEFT JOIN assessment_analysis analysis
+                ON analysis.submissionId = sa.studentAssessmentId
             WHERE sa.semesterId = ? AND a.band = ?
         `, [band.semesterId, band.bandCode])
     ]);
@@ -149,6 +152,7 @@ async function getBand(id) {
     band.assessments = assessmentRows[0].map((row) => ({
         id: String(row.id),
         name: assessmentName(row),
+        assessmentType: row.assessmentType,
         maxPoints: row.maxPoints === null ? 0 : Number(row.maxPoints),
         passingPoints: Number(row.passingPoints),
         weight: row.weight === null ? null : Number(row.weight)
@@ -164,6 +168,8 @@ async function getBand(id) {
         const studentId = String(row.studentId);
         if (!submissionsByStudent.has(studentId)) submissionsByStudent.set(studentId, {});
         submissionsByStudent.get(studentId)[String(row.assessmentId)] = {
+            studentAssessmentId: String(row.studentAssessmentId),
+            hasAnalysis: Boolean(row.hasAnalysis),
             status: row.status,
             score: row.score === null ? null : Number(row.score),
             submittedAt: row.submittedAt

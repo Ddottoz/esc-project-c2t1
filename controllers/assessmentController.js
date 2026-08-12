@@ -4,6 +4,7 @@ const {
     getSemAndBandBySemBandId, createAssessment, updateAssessment, getAssessmentById, getAllAssessmentsFiltered, publishAssessment,
     deleteAssessment, unpublishAssessment
 } = require('../models/assessment');
+const BandModel = require('../models/band');
 
 const validBands = ['A1', 'A2', 'A3', 'B4', 'B5', 'B6', 'C7', 'C8', 'C9'];
 const validComponents = ['Vocabulary', 'Writing', 'Comprehension', 'PA / Phonics'];
@@ -257,9 +258,17 @@ async function publish(req, res) {
 
 async function renderBandAssessmentsPage(req, res) {
     const semesterBandId= req.params.semesterBandId;
-    const {semesterId, band} = await getSemAndBandBySemBandId(semesterBandId);
+    const band = await BandModel.getBand(semesterBandId);
+    if (!band) {
+        return res.status(404).render('error', {message: 'Band not found', error: {status: 404}});
+    }
 
-    res.render('assessmentsList', {semesterId, band, semesterBandId});
+    res.render('assessmentsList', {
+        semesterId: band.semesterId,
+        band,
+        bandCode: band.bandCode,
+        semesterBandId
+    });
 }
 
 module.exports = { addAssessment, editAssessment, removeAssessment, getAssessment, getAssessments, publish, renderBandAssessmentsPage, unpublish, validateAssessmentBody };

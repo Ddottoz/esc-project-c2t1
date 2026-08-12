@@ -3,17 +3,23 @@ const pool = require("../models/db");
 async function findBySemesterBandAndAssessmentType(semesterId, band, assessmentType) {
   const [semesterRows] =
     await pool.execute(
-      `SELECT
-         semesterId,
-         academicYear,
-         semesterNo
+       `SELECT
+         semester.semesterId,
+         semester.academicYear,
+         semester.semesterNo,
+         semesterBand.semesterBandId
 
        FROM semester
 
-       WHERE semesterId = ?
+       LEFT JOIN semesterBand
+         ON semesterBand.semesterId = semester.semesterId
+        AND semesterBand.band = ?
+
+       WHERE semester.semesterId = ?
 
        LIMIT 1`,
       [
+        band,
         semesterId
       ]
     );
@@ -87,6 +93,11 @@ async function findBySemesterBandAndAssessmentType(semesterId, band, assessmentT
     semesterNo:
       valueOrNA(
         semesterRow.semesterNo
+      ),
+
+    semesterBandId:
+      valueOrNA(
+        semesterRow.semesterBandId
       )
   };
 

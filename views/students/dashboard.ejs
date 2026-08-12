@@ -42,7 +42,6 @@
                     <% assessments.forEach(assessment => { %>
                         <tr>
                             <td>
-                                <!-- TODO: This links to a placeholder until assessment details are implemented. -->
                                 <a class="assessment-name-link" href="/bands/<%= band.id %>/assessments/<%= assessment.id %>">
                                     <%= assessment.name %>
                                 </a>
@@ -64,12 +63,20 @@
                                     : '--' %>
                             </td>
                             <td class="actions assessment-actions">
-                                <a href="/bands/<%= band.id %>/students/<%= student.id %>/assessments/<%= assessment.id %>/upload">
-                                    Upload
-                                </a>
-                                <a href="/bands/<%= band.id %>/students/<%= student.id %>/assessments/<%= assessment.id %>/review">
-                                    Review
-                                </a>
+                                <% if (assessment.submission.studentAssessmentId) { %>
+                                    <a href="/bands/<%= band.id %>/students/<%= student.id %>/assessments/<%= assessment.id %>/upload">
+                                        Upload
+                                    </a>
+                                <% } else { %>
+                                    <span aria-disabled="true">Upload</span>
+                                <% } %>
+                                <% if (assessment.submission.studentAssessmentId && assessment.submission.hasAnalysis) { %>
+                                    <a href="/bands/<%= band.id %>/students/<%= student.id %>/assessments/<%= assessment.id %>/review">
+                                        Review
+                                    </a>
+                                <% } else { %>
+                                    <span aria-disabled="true">Review</span>
+                                <% } %>
                             </td>
                         </tr>
                     <% }) %>
