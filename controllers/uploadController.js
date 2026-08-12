@@ -1,17 +1,16 @@
 const uploadService = require("../services/uploadService");
-const analysisRepository = require("../repositories/analysisRepository");
 
 async function showAllUploads(req, res) {
 
     try {
         const studentAssessmentId = req.params.studentAssessmentId;
         const files = await uploadService.getAllUploads(studentAssessmentId);
-        const analysis = await analysisRepository.findBySubmissionId(studentAssessmentId);
-
+        const assessment = await uploadService.getAssessmentInfoFromId(studentAssessmentId);
+        console.log(assessment);
         res.render("upload", {
             studentAssessmentId: studentAssessmentId,
             files: files,
-            analysis: analysis,
+            assessment: assessment,
             message: req.query.message || ""
         });
 
