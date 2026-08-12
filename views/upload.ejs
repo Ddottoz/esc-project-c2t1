@@ -60,9 +60,9 @@
         </aside>
         <main>
     <!-- Header -->
-        <h1>Upload Submission: PA: Picture Description</h1>
+        <h1>Upload Submission: <%= analysis.submission.assessmentType %></h1>
 
-        <p class="student-name">student name</p>
+        <!-- <p class="student-name">student name</p> -->
 
         <!-- Instructions -->
         <section class="instructions">
@@ -106,9 +106,9 @@
 
             <div class="button-group">
 
-                <button type="button" class="cancel">
+                <!-- <button type="button" class="cancel">
                     Cancel
-                </button>
+                </button> -->
 
                 <!-- This submits the form -->
                 <button type="submit" class="submit">
@@ -118,7 +118,7 @@
             </div>
 
         </form>
-        <h2>Uploaded Files</h2>
+        <h2>Uploaded File</h2>
 
         <% if (files && files.length > 0) { %>
 
