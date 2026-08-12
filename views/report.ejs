@@ -140,15 +140,50 @@
         }
 
         @media print {
-            .app-shell > header, .app-shell > nav, .app-shell > sidebar, 
-            .filter-section, .btn-submit, .no-print {
+
+            header,
+            nav,
+            aside,
+            .sidebar,
+            .top-nav,
+            .hamburger-menu,
+            .btn-filter,
+            .summary-row,
+            p.summary-row {
                 display: none !important;
             }
-            .content-page {
-                padding: 0 !important;
+
+
+            body, 
+            main, 
+            .content-wrapper,
+            .printable-area {
                 margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: none !important;
+                box-shadow: none !important;
+                background: white !important;
+            }
+
+
+            h1, h2, h3 {
+                position: static !important;
+                margin-top: 1rem !important;
+                page-break-after: avoid;
+            }
+
+            .table-wrap, table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+
+            .remarks-textarea {
+                border: 1px solid #ccc !important;
+                resize: none;
             }
         }
+        
     </style>
 </head>
 
