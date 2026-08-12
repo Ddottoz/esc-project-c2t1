@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Students</title>
+        <link rel="stylesheet" href="stylesheets/students-list.css">
+    </head>
+
+    <body>
+        <header class="top-nav">
+            <a class="brand" href="/bands" aria-label="DAS home">
+                <img src="./images/das-logo.jpg" alt="DAS">
+            </a>
+            <nav aria-label="Primary navigation">
+                <a href="/bands">Bands</a>
+                <a class="active" href="students-list.html">Students</a>
+            </nav>
+            <div class="profile-icon" aria-label="User profile">
+                <img src="./images/profile_icon.webp" alt="" aria-hidden="true">
+            </div>
+        </header>
+
+        <div class="page">
+            <div class="page-header">
+                <h1>Students</h1>
+                <div class="filters">
+                    <select id="filterBand"><option value="">View by Current Band</option></select>
+                    <select id="filterCentre"><option value="">View by Centre</option></select>
+                    <select id="filterEducator"><option value="">View by Educator</option></select>
+                    <select id="filterSchLevel"><option value="">View by School Level</option></select>
+                    <select id="filterGraduated">
+                        <option value="">Graduated</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="action-row">
+                <button class="secondary" id="downloadBtn">&#8681; Download Student List</button>
+                <a href="add-edit-student.html" class="button-link">+ Add Student</a>
+                <input type="text" id="searchBox" placeholder="Search">
+            </div>
+
+            <table class="student-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Band</th>
+                        <th>Centre</th>
+                        <th>Educator</th>
+                        <th>NRIC</th>
+                        <th>School Level</th>
+                        <th>School</th>
+                        <th>Age</th>
+                        <th>Enrollment Date</th>
+                        <th>Graduated</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="studentRows"></tbody>
+            </table>
+            <div class="empty-state" id="emptyState" style="display:none;">No students match these filters.</div>
+        </div>
+
+        <script src="javascripts/studentajaxclient.js"></script>
+        <script src="javascripts/utils.js"></script>
+        <script src="javascripts/students-list.js"></script>
+    </body>
+</html>

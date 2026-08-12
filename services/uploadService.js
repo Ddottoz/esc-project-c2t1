@@ -1,37 +1,47 @@
 const uploadModel = require("../models/upload");
 const llmAdapter = require("../models/llmAdapter");
+const errorsModel = require("../models/error");
 
-async function uploadPdf(file, comment, enableAnalysis=1) {
+async function createAssessmentSubmission(studentAssessmentId, file, enableAnalysis=1) {
 
     const filePath = "/public/uploads/" + file.filename;
-    const analysisDisabledText = "Analysis disabled.";
-    const result = await uploadModel.uploadPdf(
-        file.originalname,
-        file.filename,
-        filePath,
-        comment
-    );
+    const analysisDisabledText = '{"transcription":"He ran.\\nFox hunts.","errors":[{"type":"Capitalization","original":"he ran.","correction":"He ran."}], "diagnosticSummary":"Test summary."}';
+;
 
     const analysis = enableAnalysis ? await llmAdapter.analyzePdf(
         file.path
-    ) : analysisDisabledText;
+    ) : JSON.parse(analysisDisabledText);;
 
-    await uploadModel.updateAnalysis(
-        result.insertId,
-        analysis
+    await errorsModel.deleteErrors(studentAssessmentId);
+
+    const result = await uploadModel.createAssessmentSubmission(
+        studentAssessmentId,
+        new Date(),
+        filePath
     );
+
+    for (const error of analysis.errors) {
+        await errorsModel.insertError(
+            studentAssessmentId,
+            error.original,
+            error.type
+        );
+    }
+    await uploadModel.createDiagnosticSummary(studentAssessmentId, analysis.diagnosticSummary);
+    await uploadModel.setAssessmentAssigned(studentAssessmentId);
+
 
     return result;
 
 }
 
-async function getAllUploads() {
+async function getAllUploads(submissionId) {
 
-    return uploadModel.getAllUploads();
+    return uploadModel.getAllUploads(submissionId);
 
 }
 
 module.exports = {
-    uploadPdf,
+    createAssessmentSubmission,
     getAllUploads
 };

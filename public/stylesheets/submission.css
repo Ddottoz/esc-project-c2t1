@@ -1,0 +1,125 @@
+@font-face {
+  font-family: Figtree;
+  src: url("/fonts/Figtree-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Figtree;
+  src: url("/fonts/Figtree-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-display: swap;
+}
+
+:root {
+  --red: #c1272d;
+  --white: #ffffff;
+  --gray: #635f5f;
+  --light: #f4f4f4;
+  --line: #d2d2d2;
+  --green: #109b32;
+  --yellow: #a56a00;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body { background-color: var(--white); color: var(--gray); font-family: Figtree, Arial, sans-serif; font-weight: 600; }
+button { font: inherit; color: inherit; }
+button { cursor: pointer; }
+.submission-page { min-height: 100vh; }
+
+.top-navigation { min-height: 78px; display: flex; align-items: stretch; background-color: var(--red); }
+.logo-link { width: 100px; min-width: 100px; height: 78px; display: flex; align-items: center; justify-content: center; overflow: hidden; background-color: var(--red); text-decoration: none; }
+.das-logo { width: 62px; height: 62px; display: block; object-fit: cover; }
+.navigation-links { display: flex; flex: 1; }
+.navigation-item { padding: 0 34px; display: flex; align-items: center; justify-content: center; color: var(--white); font-size: 20px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.navigation-item:hover { background-color: var(--red); }
+.navigation-item.active { background-color: var(--white); color: var(--red); }
+.navigation-item.active:hover { background-color: var(--white); }
+.profile-button { width: 78px; min-width: 78px; border: none; background-color: var(--red); display: flex; align-items: center; justify-content: center; }
+.profile-button:hover { background-color: var(--red); }
+.profile-icon { width: 44px; height: 44px; display: block; object-fit: contain; filter: brightness(0) invert(1); }
+
+.workspace { min-height: calc(100vh - 78px); display: grid; grid-template-columns: 260px minmax(0, 1fr); transition: grid-template-columns 0.2s ease; }
+.submission-page.sidebar-collapsed .workspace { grid-template-columns: 72px minmax(0, 1fr); }
+.sidebar { position: relative; min-height: calc(100vh - 78px); padding: 34px 24px; background-color: var(--light); transition: padding 0.2s ease; overflow: hidden; }
+.submission-page.sidebar-collapsed .sidebar { padding: 34px 12px; }
+.sidebar-toggle { position: absolute; top: 14px; right: 14px; padding: 0; border: none; background-color: transparent; color: var(--gray); font-size: 26px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+.toggle-arrow { color: var(--red); line-height: 1; }
+.toggle-menu { line-height: 1; }
+.submission-page.sidebar-collapsed .toggle-arrow { transform: rotate(180deg); }
+
+.band-information { margin-top: 0; }
+.band-information h2 { margin: 0; color: var(--red); font-size: 28px; font-weight: 600; }
+.band-information h3 { margin: 0 0 8px; color: var(--gray); font-size: 22px; font-weight: 600; white-space: nowrap; }
+.band-information p { margin: 0; color: var(--gray); font-size: 16px; font-weight: 600; }
+.back-to-assessments { display: inline-block; margin-top: 24px; color: var(--gray); font-size: 12px; font-weight: 600; }
+.sidebar-navigation { margin-top: 34px; display: flex; flex-direction: column; gap: 7px; }
+.sidebar-link { min-height: 42px; padding: 8px; display: flex; align-items: center; gap: 12px; color: var(--gray); font-size: 20px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.sidebar-link:hover { background-color: #e8e8e8; }
+.sidebar-link.active { background-color: var(--red); color: var(--white); }
+.sidebar-link.active:hover { background-color: var(--red); }
+.sidebar-icon { width: 20px; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+.answer-key-sidebar-icon { width: 20px; height: 20px; display: block; object-fit: contain; }
+.assessment-sidebar-icon { display: inline-block; background-color: var(--gray); -webkit-mask: url("/images/assessment_icon.png") center / contain no-repeat; mask: url("/images/assessment_icon.png") center / contain no-repeat; }
+.sidebar-link.active .assessment-sidebar-icon { background-color: var(--white); }
+.submission-page.sidebar-collapsed .band-information,
+.submission-page.sidebar-collapsed .back-to-assessments,
+.submission-page.sidebar-collapsed .sidebar-link-label { display: none; }
+.submission-page.sidebar-collapsed .sidebar-link { justify-content: center; padding: 8px; }
+.submission-page.sidebar-collapsed .sidebar-icon { width: 20px; min-width: 20px; }
+.submission-page.sidebar-collapsed .sidebar-toggle { right: 50%; transform: translateX(50%); }
+
+.submissions-main { min-width: 0; padding: 32px 42px 60px; }
+.submissions-heading h1 { margin: 0 0 20px; color: var(--gray); font-size: 26px; line-height: 1.2; font-weight: 600; }
+.submission-table-wrapper { width: 100%; margin-top: 18px; overflow-x: auto; }
+.submission-table { width: 100%; min-width: 760px; border-collapse: collapse; table-layout: fixed; color: var(--gray); font-size: 14px; }
+.submission-table th,
+.submission-table td { padding: 9px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; white-space: nowrap; }
+.submission-table th { font-size: 14px; font-weight: 600; }
+.submission-table th:nth-child(1) { width: 26%; }
+.submission-table th:nth-child(2) { width: 13%; }
+.submission-table th:nth-child(3) { width: 18%; }
+.submission-table th:nth-child(4) { width: 17%; }
+.submission-table th:nth-child(5) { width: 13%; }
+.submission-table th:nth-child(6) { width: 13%; }
+.status-label { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.status-graded { color: var(--green); background-color: #e5f7e9; }
+.status-assigned { color: var(--yellow); background-color: #fff4d4; }
+.status-unavailable { color: var(--gray); background-color: #eeeeee; }
+.table-action { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.review-action-icon { width: 17px; height: 17px; display: inline-block; flex-shrink: 0; object-fit: contain; }
+.upload-action-icon { width: 17px; height: 17px; display: inline-block; flex-shrink: 0; object-fit: contain; }
+.table-action-enabled { color: #111111; }
+.table-action-enabled:hover { color: var(--red); }
+.table-action-disabled { color: #a3a3a3; cursor: not-allowed; text-decoration-color: #a3a3a3; }
+.empty-submissions { padding: 24px 8px !important; color: #767676; text-align: center !important; }
+
+@media (max-width: 1180px) {
+  .navigation-item { padding: 0 24px; font-size: 18px; }
+  .workspace { grid-template-columns: 240px minmax(0, 1fr); }
+  .submission-page.sidebar-collapsed .workspace { grid-template-columns: 72px minmax(0, 1fr); }
+  .sidebar { padding: 34px 20px; }
+}
+
+@media (max-width: 780px) {
+  .top-navigation { flex-wrap: wrap; }
+  .logo-link { width: 90px; min-width: 90px; }
+  .das-logo { width: 58px; height: 58px; }
+  .profile-button { margin-left: auto; }
+  .navigation-links { order: 3; width: 100%; overflow-x: auto; }
+  .navigation-item { min-width: 130px; height: 52px; padding: 0 20px; font-size: 18px; }
+  .workspace,
+  .submission-page.sidebar-collapsed .workspace { display: block; }
+  .sidebar { min-height: auto; padding: 28px 20px 20px; }
+  .submission-page.sidebar-collapsed .band-information,
+  .submission-page.sidebar-collapsed .back-to-assessments,
+  .submission-page.sidebar-collapsed .sidebar-link-label { display: initial; }
+  .submission-page.sidebar-collapsed .sidebar-link { justify-content: flex-start; }
+  .submission-page.sidebar-collapsed .sidebar-toggle { right: 14px; transform: none; }
+  .sidebar-navigation { flex-direction: row; gap: 7px; }
+  .sidebar-link { flex: 1; justify-content: center; font-size: 17px; }
+  .submissions-main { padding: 28px 20px 30px; }
+  .submissions-heading h1 { font-size: 24px; }
+}

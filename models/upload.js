@@ -1,57 +1,86 @@
 const pool = require("./db");
 
-async function uploadPdf(originalName, storedName, filePath, comment) {
-
+async function createAssessmentSubmission(
+    studentAssessmentId,
+    submittedDate,
+    filePath
+) {
     const sql = `
-        INSERT INTO pdf_files
-        (original_name, stored_name, file_path, comment)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO assessmentSubmission
+        (studentAssessmentId, submittedDate, submittedBy, filepath, isAccepted)
+        VALUES (?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            submittedDate = VALUES(submittedDate),
+            submittedBy = VALUES(submittedBy),
+            filepath = VALUES(filepath),
+            isAccepted = VALUES(isAccepted)
     `;
 
     const [result] = await pool.query(sql, [
-        originalName,
-        storedName,
+        studentAssessmentId,
+        submittedDate,
+        1,
         filePath,
-        comment
+        0
+    ]);
+
+    return result;
+}
+async function createDiagnosticSummary(
+    studentAssessmentId,
+    diagnosticSummary
+) {
+    const sql = `
+        INSERT INTO assessment_analysis
+        (submissionId, diagnosticSummary, isAccepted)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            diagnosticSummary = VALUES(diagnosticSummary),
+            isAccepted = VALUES(isAccepted)
+    `;
+
+    const [result] = await pool.query(sql, [
+        studentAssessmentId,
+        diagnosticSummary,
+        0
     ]);
 
     return result;
 }
 
-async function getAllUploads() {
+async function getAllUploads(studentAssessmentId) {
 
     const [rows] = await pool.query(
         `SELECT 
-            id,
-            original_name AS fileName,
-            file_path AS filePath,
-            comment,
-            analysis
-         FROM pdf_files
-         ORDER BY id DESC`
+            submissionId as id,
+            submittedDate as date,
+            filepath
+         FROM assessmentSubmission
+         WHERE studentAssessmentId = ?
+         ORDER BY submittedDate DESC`,
+         [studentAssessmentId]
     );
 
     return rows;
 }
 
-async function updateAnalysis(id, analysis) {
-
+async function setAssessmentAssigned(studentAssessmentId) {
     const sql = `
-        UPDATE pdf_files
-        SET analysis = ?
-        WHERE id = ?
+        UPDATE studentAssessment
+        SET status = 'Assigned'
+        WHERE studentAssessmentId = ?
     `;
 
     const [result] = await pool.query(sql, [
-        JSON.stringify(analysis),
-        id
+        studentAssessmentId
     ]);
 
     return result;
 }
 
 module.exports = {
-    uploadPdf,
-    updateAnalysis,
-    getAllUploads
+    createAssessmentSubmission,
+    createDiagnosticSummary,
+    getAllUploads,
+    setAssessmentAssigned
 };
