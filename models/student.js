@@ -210,9 +210,13 @@ async function generateReport(studentId, startSem, endSem) {
     const [studentRows] = await pool.query(
         `SELECT 
             s.*,
-            c.centreName
+            c.centreName,
+            sb.semesterBandId
          FROM student s
          LEFT JOIN centre c ON s.centreId = c.centreId
+         LEFT JOIN semesterBand sb
+             ON sb.semesterId = s.currentSemester
+            AND sb.band = s.currentBand
          WHERE s.studentId = ?`, 
         [studentId]
     );
