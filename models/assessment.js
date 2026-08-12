@@ -11,7 +11,7 @@ async function getStudentsByBandAndSemester(connection, band, semesterId) {
 // helper - getsembandid from semesterId and band
 async function getSemBandIdByBandAndSemester(connection, band, semesterId) {
     const [rows] = await connection.query(
-        `SELECT semesterBandId FROM semesterband WHERE semesterId = ? AND band = ?;`,
+        `SELECT semesterBandId FROM semesterBand WHERE semesterId = ? AND band = ?;`,
         [semesterId, band]
     );
     return rows[0]?.semesterBandId ?? null;
@@ -19,10 +19,20 @@ async function getSemBandIdByBandAndSemester(connection, band, semesterId) {
 
 async function createSemBandAssessmentWgt(connection, semesterBandId, assessmentId, weight) {
     const [result] = await connection.query(
-        `INSERT INTO semesterbandassessmentweight (semesterBandId, assessmentId, weight) VALUES (?, ?, ?);`,
+        `INSERT INTO semesterBandAssessmentWeight (semesterBandId, assessmentId, weight) VALUES (?, ?, ?);`,
         [semesterBandId, assessmentId, weight]
     );
     return result.affectedRows > 0;
+}
+async function getSemAndBandBySemBandId(semBandId) {
+    const [rows] = await pool.query(
+        `SELECT semesterId, band
+         FROM semesterBand
+         WHERE semesterBandId = ?`,
+        [semBandId]
+    );
+
+    return rows[0] ?? null;
 }
 
 // --- Template CRUD ---
@@ -144,7 +154,7 @@ async function updateAssessment(assessmentId, { assessmentType, component, band,
         }
 
         await connection.query(
-            `INSERT INTO semesterbandassessmentweight (semesterBandId, assessmentId, weight) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE weight = VALUES(weight)`,
+            `INSERT INTO semesterBandAssessmentWeight (semesterBandId, assessmentId, weight) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE weight = VALUES(weight)`,
             [semesterBandId, assessmentId, weight]
         );
 
@@ -173,9 +183,9 @@ async function getAllAssessmentsFiltered(semesterId, assessmentType = null, comp
             CASE WHEN COUNT(sa.studentAssessmentId) > 0 THEN true ELSE false END AS isPublished,
             CASE WHEN (SELECT COUNT(*) FROM studentAssessment sa2 WHERE sa2.assessmentId = a.assessmentId) > 0 THEN true ELSE false END AS isPublishedAnywhere
         FROM assessment a
-        LEFT JOIN semesterband sb 
+        LEFT JOIN semesterBand sb 
             ON sb.semesterId = ? AND sb.band = a.band
-        LEFT JOIN semesterbandassessmentweight sbaw 
+        LEFT JOIN semesterBandAssessmentWeight sbaw 
             ON sbaw.assessmentId = a.assessmentId AND sbaw.semesterBandId = sb.semesterBandId
         LEFT JOIN studentAssessment sa 
             ON sa.assessmentId = a.assessmentId AND sa.semesterId = ?
@@ -222,7 +232,7 @@ async function deleteAssessment(assessmentId) {
             return { success: false, reason: 'ALREADY_PUBLISHED' };
         }
 
-        await connection.query(`DELETE FROM semesterbandassessmentweight WHERE assessmentId = ?`, [assessmentId]);
+        await connection.query(`DELETE FROM semesterBandAssessmentWeight WHERE assessmentId = ?`, [assessmentId]);
         await connection.query(`DELETE FROM assessment WHERE assessmentId = ?`, [assessmentId]);
 
         await connection.commit();
@@ -317,5 +327,5 @@ async function unpublishAssessment(assessmentId, semesterId) {
 }
 
 module.exports = {
-    createAssessment, updateAssessment, getAssessmentById, getAllAssessmentsFiltered, deleteAssessment, publishAssessment, unpublishAssessment
+    getSemAndBandBySemBandId, createAssessment, updateAssessment, getAssessmentById, getAllAssessmentsFiltered, deleteAssessment, publishAssessment, unpublishAssessment
 };

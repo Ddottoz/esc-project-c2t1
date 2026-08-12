@@ -19,7 +19,7 @@
                 <h2><%= group.term %></h2>
                 <div class="band-grid">
                     <% group.bands.forEach(band => { %>
-                        <a class="band-card" href="/bands/<%= band.id %>/assessments">
+                        <a class="band-card" href="assessments/<%= band.id %>/view">
                             <strong><%= band.name %></strong>
                             <small>
                                 <%= band.studentCount %> students &middot;
