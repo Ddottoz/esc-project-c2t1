@@ -1,163 +1,358 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap');
+
+:root {
+    --red: #C1272D;
+}
+
+* { 
+    box-sizing: border-box; 
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background: #ffffff;
+    font-family: 'Figtree', sans-serif;
+    background: #FFFFFF;
+    color: #635F5F;
     margin: 0;
 }
 
-/* temporary */
-.navbar {
-    background: red;
-    color: #ffffff;
-    padding: 14px 24px;
-    font-weight: bold;
+/* ==========================================
+   NAVBAR
+   ========================================== */
+.top-nav {
+    grid-column: 1/-1;
+    display: flex;
+    height: 78px;
+    background: var(--red);
+    color: white;
+    align-items: stretch;
 }
 
-.card {
-    background: #ffffff;
-    max-width: 640px;
-    margin: 24px auto;
-    padding: 24px 32px;
-    border-radius: 6px;
+.top-nav .brand {
+    width: 100px;
+    padding: 8px;
+    background: var(--red);
+    display: grid;
+    place-items: center;
 }
 
-h2 {
-    color: red;
-    margin-top: 0;
+.top-nav .brand img {
+    width: 62px;
+    height: 62px;
+    object-fit: cover;
 }
 
-label {
+.top-nav nav {
+    display: flex;
+}
+
+.top-nav nav a {
+    padding: 0 34px;
+    display: grid;
+    place-items: center;
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+}
+
+.top-nav nav a.active {
+    color: var(--red);
+    background: white;
+    font-weight: 700;
+}
+
+.top-nav .profile-icon {
+    margin-left: auto;
+    width: 78px;
+    display: grid;
+    place-items: center;
+    font-size: 0;
+}
+
+.top-nav .profile-icon img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+}
+
+/* ==========================================
+   PAGE CONTAINER & HEADINGS
+   ========================================== */
+.page {
+    max-width: 900px;
+    margin: 32px auto 60px;
+    padding: 0 24px;
+}
+
+.page h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #635F5F;
+    margin-bottom: 24px;
+}
+
+.section-title {
+    color: #C1272D;
+    font-size: 15px;
+    font-weight: 700;
+    margin: 28px 0 16px 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+/* ==========================================
+   FORM INPUTS & LABELS
+   ========================================== */
+.field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 36px;
+}
+
+label, .section-label {
     display: block;
     font-size: 13px;
+    font-weight: 700;
     color: #635F5F;
-    margin: 14px 0 4px;
+    margin: 12px 0 4px;
 }
 
-input, select {
+.required {
+    color: #C1272D;
+    font-weight: 700;
+    margin-left: 2px;
+}
+
+/* Base style for Text Inputs (Underline Style per Wireframe) */
+input[type="text"],
+input[type="email"],
+input[type="tel"] {
+    width: 100%;
+    padding: 6px 2px;
+    border: none;
+    border-bottom: 1px solid #B0B0B0;
+    border-radius: 0;
+    font-family: 'Figtree', sans-serif;
+    font-size: 13px;
+    color: #635F5F;
+    background: transparent;
+    outline: none;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus {
+    border-bottom-color: #C1272D;
+}
+
+/* Boxed Style for Select Dropdowns & Date Pickers */
+select, 
+input[type="date"] {
     width: 100%;
     padding: 8px 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    box-sizing: border-box;
+    border: 1px solid #767676;
+    border-radius: 0;
+    font-family: 'Figtree', sans-serif;
+    font-size: 13px;
+    color: #635F5F;
+    background-color: #FFFFFF;
+    outline: none;
+    cursor: pointer;
 }
 
-input.invalid, select.invalid {
-    border-color: #c71f24;
-    background: #fff6f6;
+select:focus, 
+input[type="date"]:focus {
+    border-color: #C1272D;
+}
+
+/* Textarea / Remarks Box */
+textarea {
+    width: 100%;
+    min-height: 90px;
+    padding: 8px 10px;
+    border: 1px solid #767676;
+    border-radius: 0;
+    font-family: 'Figtree', sans-serif;
+    font-size: 13px;
+    color: #635F5F;
+    outline: none;
+    resize: vertical;
+}
+
+textarea:focus {
+    border-color: #C1272D;
+}
+
+/* Placeholders & Readonly/Static States */
+input::placeholder, 
+textarea::placeholder {
+    color: #A0A0A0;
+}
+
+.static-value {
+    padding: 4px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #635F5F;
+}
+
+/* Error validation state */
+input.invalid, select.invalid, textarea.invalid {
+    border-color: #C1272D !important;
+    background-color: #FFF8F8;
 }
 
 .field-error {
-    color: #c71f24;
-    font-size: 12px;
-    margin-top: 4px;
+    color: #C1272D;
+    font-size: 11px;
+    margin-top: 3px;
     min-height: 14px;
 }
 
-.checkbox-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 6px;
-}
-
-.checkbox-group .option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.checkbox-group .option input {
-    width: auto;
-}
-
-.contact-card {
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 12px 16px;
+/* ==========================================
+   EDUCATOR TABLE & EXTRA SECTIONS
+   ========================================== */
+.educator-table {
+    width: 100%;
+    border-collapse: collapse;
     margin-top: 12px;
-    background: #fafafa;
+    font-size: 13px;
 }
 
+.educator-table th {
+    text-align: left;
+    color: #635F5F;
+    font-weight: 700;
+    border-bottom: 1px solid #767676;
+    padding: 8px 4px;
+}
+
+.educator-table td {
+    padding: 10px 4px;
+    color: #635F5F;
+    font-weight: 500;
+    border-bottom: 1px solid #E0E0E0;
+}
+
+/* ==========================================
+   CONTACT PERSON CARD STYLING
+   ========================================== */
+
+.contact-card-item {
+    background-color: #FAFAFA;          /* Subtle light grey background */
+    border: 1px solid #E2E2E2;           /* Soft border */
+    border-radius: 8px;                  /* Rounded corners for a softer aesthetic */
+    padding: 20px 24px;                  /* Comfortable inner spacing */
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03); /* Extremely soft depth */
+}
+
+/* Header row pushing title left & remove button right */
 .contact-card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 13px;
-    font-weight: bold;
-    color: #444;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #EFEFEF;    /* Soft divider line inside the card */
 }
 
-.contact-card .checkbox-row {
+.card-subtitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: #635F5F;
+}
+
+/* Red text-style Remove button aligned to the far right */
+.remove-btn {
+    background: transparent !important;
+    border: none !important;
+    color: #C1272D !important;
+    font-family: 'Figtree', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 0 !important;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.remove-btn:hover {
+    opacity: 0.75;
+    text-decoration: underline;
+}
+
+/* Radio button row inside the card */
+.checkbox-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 12px;
+    margin-top: 16px;
 }
 
-.contact-card .checkbox-row input {
-    width: auto;
+.checkbox-row input[type="radio"] {
+    margin: 0;
+    cursor: pointer;
+    accent-color: #C1272D;
 }
 
-.button-row {
-    display: flex;
-    gap: 12px;
-    margin-top: 24px;
-    flex-wrap: wrap;
-}
-
-button {
-    background: red;
-    color: #ffffff;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 20px;
-    font-weight: bold;
-    font-size: 14px;
+.checkbox-row label {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #635F5F;
     cursor: pointer;
 }
 
-button:hover {
-    background: #c71f24;
+/* ==========================================
+   BUTTONS
+   ========================================== */
+.button-row {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 32px;
+}
+
+button {
+    background: #C1272D;
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 36px;
+    border-radius: 0; /* Square button per wireframe */
+    font-family: 'Figtree', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+button:hover { 
+    background: #A11E23; 
 }
 
 button.secondary {
-    background: #ffffff;
-    color: red;
-    border: 1px solid red;
-}
-
-button.secondary:hover {
-    background: #fdecec;
-}
-
-button .small {
+    background: #FFFFFF;
+    color: #635F5F;
+    border: 1px solid #767676;
     padding: 6px 14px;
-    font-size: 13px;
-    margin-top: 10px;
+}
+
+button.secondary:hover { 
+    background: #F5F5F5; 
 }
 
 #statusMsg {
-    margin-top: 12px;
+    text-align: left;
+    margin-top: 14px;
     font-size: 13px;
     min-height: 16px;
 }
 
-#statusMsg.error {
-    color: #c71f24;
-}
+#statusMsg.error { color: #C1272D; }
+#statusMsg.success { color: #1A7A1A; }
 
-#statusMsg.success {
-    color: #1a7a1a;
-}
-
-.load-existing {
-    background: #fdecec;
-    border: 1px solid #f3c6c6;
-    border-radius: 6px;
-    padding: 12px 16px;
-    margin-bottom: 20px;
-} 
-
-.load-existing label {
-    margin-top: 0;
+@media (max-width: 640px) {
+    .field-grid { 
+        grid-template-columns: 1fr; 
+    }
 }

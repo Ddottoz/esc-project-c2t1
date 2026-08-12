@@ -6,3 +6,4 @@ docs/
 /.codex-temp
 .vscode/
 public/uploads/
+.DS_Store

@@ -42,7 +42,6 @@
                     <% assessments.forEach(assessment => { %>
                         <tr>
                             <td>
-                                <!-- TODO: This links to a placeholder until assessment details are implemented. -->
                                 <a class="assessment-name-link" href="/bands/<%= band.id %>/assessments/<%= assessment.id %>">
                                     <%= assessment.name %>
                                 </a>
@@ -64,12 +63,36 @@
                                     : '--' %>
                             </td>
                             <td class="actions assessment-actions">
-                                <a href="/bands/<%= band.id %>/students/<%= student.id %>/assessments/<%= assessment.id %>/upload">
-                                    Upload
-                                </a>
-                                <a href="/bands/<%= band.id %>/students/<%= student.id %>/assessments/<%= assessment.id %>/review">
-                                    Review
-                                </a>
+                                <div class="assessment-action-list">
+                                    <% if (assessment.submission.studentAssessmentId) { %>
+                                        <a
+                                            class="assessment-action assessment-action-enabled"
+                                            href="/bands/<%= band.id %>/students/<%= student.id %>/assessments/<%= assessment.id %>/upload"
+                                        >
+                                            <img src="/images/upload.png" alt="" class="upload-action-icon" aria-hidden="true">
+                                            <span>Upload</span>
+                                        </a>
+                                    <% } else { %>
+                                        <span class="assessment-action assessment-action-disabled" aria-disabled="true">
+                                            <img src="/images/upload.png" alt="" class="upload-action-icon" aria-hidden="true">
+                                            <span>Upload</span>
+                                        </span>
+                                    <% } %>
+                                    <% if (assessment.submission.studentAssessmentId && assessment.submission.hasAnalysis) { %>
+                                        <a
+                                            class="assessment-action assessment-action-enabled"
+                                            href="/bands/<%= band.id %>/students/<%= student.id %>/assessments/<%= assessment.id %>/review"
+                                        >
+                                            <img src="/images/review.png" alt="" class="review-action-icon" aria-hidden="true">
+                                            <span>Review</span>
+                                        </a>
+                                    <% } else { %>
+                                        <span class="assessment-action assessment-action-disabled" aria-disabled="true">
+                                            <img src="/images/review.png" alt="" class="review-action-icon" aria-hidden="true">
+                                            <span>Review</span>
+                                        </span>
+                                    <% } %>
+                                </div>
                             </td>
                         </tr>
                     <% }) %>

@@ -1,0 +1,126 @@
+/* The top navigation and page shell come from bands.css.
+   This file only styles the Edit Educator form. */
+
+.educator-page {
+    padding: 35px 55px;
+}
+
+.page-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 25px;
+}
+
+.educator-page h1 {
+    color: #555;
+    font-size: 34px;
+}
+
+.logout-link {
+    color: var(--red);
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.educator-page h2 {
+    color: var(--red);
+    font-size: 20px;
+    margin: 30px 0 15px;
+}
+
+.message {
+    background: #f2f2f2;
+    border-left: 5px solid var(--red);
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    max-width: 700px;
+}
+
+/* FORM */
+
+.row {
+    display: flex;
+    gap: 70px;
+    margin-bottom: 20px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    width: 290px;
+}
+
+.field label {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.field input {
+    border: none;
+    border-bottom: 1px solid #999;
+    padding: 5px 0;
+    font-size: 16px;
+    color: #555;
+    outline: none;
+    background: none;
+}
+
+.field input:focus {
+    border-bottom: 2px solid var(--red);
+}
+
+.hidden {
+    display: none;
+}
+
+/* BUTTONS */
+
+.hint {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #777;
+}
+
+.grey-button {
+    margin-top: 22px;
+    border: none;
+    background: #e0e0e0;
+    padding: 12px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.save-button {
+    margin-top: 40px;
+    border: none;
+    background: var(--red);
+    color: white;
+    padding: 14px 45px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.save-button:hover {
+    background: #a81f24;
+}
+
+/* PROGRAMME TABLE */
+
+.educator-page table {
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.educator-page th {
+    font-size: 14px;
+    border-bottom: 1px solid #999;
+    padding: 8px 45px 8px 0;
+}
+
+.educator-page td {
+    font-size: 15px;
+    color: #555;
+    padding: 10px 45px 10px 0;
+}

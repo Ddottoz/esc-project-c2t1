@@ -23,13 +23,18 @@
 
             <p>Enter your details below</p>
 
-            <form action="/auth/register" method="POST">
+            <% if (error) { %>
+                <p class="form-error"><%= error %></p>
+            <% } %>
+
+            <form action="/register" method="POST">
 
                 <div class="input-group">
                     <input
                         type="text"
                         name="name"
                         placeholder="Name"
+                        value="<%= name %>"
                         required>
                 </div>
 
@@ -38,6 +43,7 @@
                         type="email"
                         name="email"
                         placeholder="Email"
+                        value="<%= email %>"
                         required>
                 </div>
 

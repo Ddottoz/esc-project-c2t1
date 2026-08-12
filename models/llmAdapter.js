@@ -48,6 +48,21 @@ Instructions:
 7. Do not invent words that are not visible.
 8. If text is unreadable, indicate that it is unreadable instead of guessing.
 
+After identifying the errors, determine the student's overall literacy strengths and weaknesses.
+
+Do not diagnose a medical, developmental, or learning disorder. Instead, describe observable literacy behaviours demonstrated in the writing.
+
+Consider:
+
+Which types of errors occur most frequently?
+Which errors appear to be recurring patterns?
+Are errors isolated or systematic?
+What literacy skills appear to be developing appropriately?
+Which areas appear to require additional support?
+How does the student's writing affect readability and communication?
+
+Do not penalize the student for a feature unless there is sufficient evidence in the writing.
+
 Return ONLY valid JSON using the following format:
 
 {
@@ -60,7 +75,8 @@ Return ONLY valid JSON using the following format:
       "explanation": "string",
       "confidence": 0.0
     }
-  ]
+  ],
+  "diagnosticSummary": "string"
 }
 `;
     console.log("getting response");

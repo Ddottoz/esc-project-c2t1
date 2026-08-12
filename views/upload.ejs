@@ -10,95 +10,162 @@
 </head>
 
 <body>
+<div id="upload-page">
+    <header class="top-navigation">
+        <a href="/bands" class="logo-link" aria-label="DAS home">
+        <img src="/images/das-logo.jpg" alt="Dyslexia Association of Singapore logo" class="das-logo">
+        </a>
 
-<div class="page">
+        <nav class="navigation-links">
+        <a href="/bands" class="navigation-item active">Bands</a>
+        <a href="/students" class="navigation-item">Students</a>
+        </nav>
 
-    <!-- Header -->
-    <h1>Upload Submission: PA: Picture Description</h1>
+        <a href="/educator" class="profile-button" aria-label="Open account">
+        <img src="/images/profile_icon.webp" alt="" class="profile-icon" aria-hidden="true">
+        </a>
+    </header>
 
-    <p class="student-name">student name</p>
-
-    <!-- Instructions -->
-    <section class="instructions">
-
-        <h2>Instructions</h2>
-
-        <p>PDF file only</p>
-
-    </section>
-
-    <!-- Submission -->
-    <h2>Upload PDF Document</h2>
-    
-
-    <form action="/upload" method="POST" enctype="multipart/form-data">
-
-        <div>
-            <label for="pdf">Select PDF File</label><br>
-
-            <input
-                type="file"
-                id="pdf"
-                name="pdf"
-                accept=".pdf,application/pdf"
-                required>
-        </div>
-
-        <br>
-
-
-        <div class="comment-panel">
-
-            <label class="comment-label">
-                Add Comments
-            </label>
-
-            <textarea rows="6" name="comment"></textarea>
-
-        </div>
-
-
-        <div class="button-group">
-
-            <button type="button" class="cancel">
-                Cancel
+    <div class="workspace">
+        <aside id="sidebar" class="sidebar">
+            <button id="sidebar-toggle" type="button" class="sidebar-toggle" aria-label="Toggle sidebar" title="Toggle sidebar">
+                <span class="toggle-arrow">‹</span>
+                <span class="toggle-menu">☰</span>
             </button>
 
-            <!-- This submits the form -->
-            <button type="submit" class="submit">
-                Submit
-            </button>
+            <section class="band-information">
+                <h2>Band <%= assessment.band %></h2>
+                <h3><%= assessment.academicYear %> Semester <%= assessment.semNo %></h3>
+                <p><%= assessment.assessmentType %></p>
+            </section>
 
-        </div>
+            <a
+                href="/submission/<%= assessment.semId %>/<%= encodeURIComponent(assessment.band) %>/<%= encodeURIComponent(String(assessment.assessmentType).replace(/ /g, "_")) %>"
+                class="back-to-submissions"
+            >&lt; Back to Submissions</a>
 
-    </form>
+            <nav class="sidebar-navigation">
+                <a href="/upload/<%= assessment.studentAssessmentId %>" class="sidebar-link active" title="Upload">
+                <span class="sidebar-icon">
+                    <img src="/images/upload.png" alt="" class="upload-sidebar-icon" aria-hidden="true">
+                </span>
+                <span class="sidebar-link-label">Upload</span>
+                </a>
 
+                <a href="/viewanalysis/<%= assessment.studentAssessmentId %>" class="sidebar-link" title="Review">
+                <span class="sidebar-icon"><img src="/images/review.png" alt="" class="review-sidebar-icon" aria-hidden="true"></span>
+                <span class="sidebar-link-label">Review</span>
+                </a>
+            </nav>
+        </aside>
+        <main class="review-main">
+        <h1 class="hh2">Upload Submission: <%= assessment.assessmentType %></h1>
+
+        <p class="student-name"><%= assessment.studentId %></p>
+
+        <!-- Instructions -->
+        <section class="instructions">
+
+            <h2 class="hh2">Instructions</h2>
+
+            <p>PDF file only</p>
+
+        </section>
+
+        <!-- Submission -->
+        <h2 class="hh2">Upload PDF Document</h2>
+        
+
+        <form id="upload-form" action="/upload/<%= studentAssessmentId %>" method="POST" enctype="multipart/form-data">
+
+            <div>
+                <label for="pdf">Select PDF File</label><br>
+
+                <input
+                    type="file"
+                    id="pdf"
+                    name="pdf"
+                    accept=".pdf,application/pdf"
+                    required>
+            </div>
+
+            <br>
+
+
+            <!-- <div class="comment-panel">
+
+                <label class="comment-label">
+                    Add Comments
+                </label>
+
+                <textarea rows="6" name="comment"></textarea>
+
+            </div> -->
+
+
+            <div class="button-group">
+
+                <!-- <button type="button" class="cancel">
+                    Cancel
+                </button> -->
+
+                <!-- This submits the form -->
+                <button id="upload-submit" type="submit" class="submit">
+                    Submit
+                </button>
+
+            </div>
+
+        </form>
+        <h2>Uploaded File</h2>
+
+        <% if (files && files.length > 0) { %>
+
+        <ul>
+
+            <% files.forEach(file => { %>
+
+                <li>
+                    <a href="<%= file.filepath %>" target="_blank">
+                        <%= file.id %>
+                    </a>
+                </li>
+
+            <% }) %>
+
+        </ul>
+
+        <% } else { %>
+
+        <p>No files uploaded yet.</p>
+
+        <% } %>
+        </main>
+        
+
+    </div>
 </div>
-<h2>Uploaded Files</h2>
 
-<% if (files && files.length > 0) { %>
-
-<ul>
-
-    <% files.forEach(file => { %>
-
-        <li>
-            <a href="<%= file.filePath %>" target="_blank">
-                <%= file.fileName %>
-            </a>
-        </li>
-
-    <% }) %>
-
-</ul>
-
-<% } else { %>
-
-<p>No files uploaded yet.</p>
-
-<% } %>
 <script>
     const message = "<%= message %>";
+    const uploadForm = document.getElementById('upload-form');
+    const uploadSubmit = document.getElementById('upload-submit');
+
+    function setUploadLoading(isLoading) {
+        document.body.classList.toggle('upload-loading', isLoading);
+        uploadForm.setAttribute('aria-busy', String(isLoading));
+        uploadSubmit.disabled = isLoading;
+        uploadSubmit.textContent = isLoading ? 'Uploading...' : 'Submit';
+    }
+
+    uploadForm.addEventListener('submit', () => {
+        setUploadLoading(true);
+    });
+
+    // Restore the form when returning to this page from the browser cache.
+    window.addEventListener('pageshow', () => {
+        setUploadLoading(false);
+    });
 
     if (message === "success") {
         alert("Upload successful!");
@@ -110,3 +177,4 @@
 </script>
 </body>
 </html>
+

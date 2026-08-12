@@ -1,0 +1,370 @@
+/* ---------- Page setup ---------- */
+
+/*
+The shared bands.css file controls body, app-shell,
+top navigation, sidebar and content-page.
+
+Do not apply body padding because it creates a gap
+around the navbar.
+*/
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.assessment-list-page {
+    min-width: 0;
+    background-color: #ffffff;
+    color: #635f5f;
+}
+
+/* ---------- Page header ---------- */
+
+#assessmentCountTitle {
+    color: inherit;
+}
+
+.assessment-title-row {
+    justify-content: flex-start;
+    margin-bottom: 20px;
+}
+
+.assessment-title-row h1 {
+    margin: 0;
+}
+
+.assessment-filter-toolbar {
+    justify-content: flex-start;
+}
+
+/* ---------- Table ---------- */
+
+.assessmentTableWrapper table {
+    width: 100%;
+    min-width: 1100px;
+    table-layout: auto;
+}
+
+.assessmentTableWrapper tbody tr:hover {
+    background-color: #faf5f5;
+}
+
+#assessment-table th {
+    font-size: 14px;
+}
+
+/* ---------- Filter inputs ---------- */
+
+.filterInput {
+    min-width: 220px;
+}
+
+.filterInput:focus {
+    border-color: #c1272d;
+    outline: none;
+}
+
+/* ---------- Page and modal buttons ---------- */
+
+#assessmentModal button,
+#publishModal button,
+#rubricsModal button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background-color 0.15s ease,
+        transform 0.05s ease;
+}
+
+#assessmentModal button:active,
+#publishModal button:active,
+#rubricsModal button:active {
+    transform: scale(0.97);
+}
+
+/* Primary buttons */
+
+#assessmentForm button[type="submit"],
+#publishForm button[type="submit"] {
+    background-color: #c1272d;
+    color: #ffffff;
+}
+
+#assessmentForm button[type="submit"]:hover,
+#publishForm button[type="submit"]:hover {
+    background-color: #a01f24;
+}
+
+.publishBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #635f5f;
+    font: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.publishBtn:hover {
+    color: #c1272d;
+}
+
+/* Secondary buttons */
+
+#cancelModalBtn,
+#cancelPublishBtn,
+#closeRubricsBtn {
+    border: 1px solid #635f5f;
+    background-color: #ffffff;
+    color: #635f5f;
+}
+
+#cancelModalBtn:hover,
+#cancelPublishBtn:hover,
+#closeRubricsBtn:hover {
+    background-color: #f0f0f0;
+}
+
+/* Unpublish button */
+
+.unpublishBtn {
+    border: 1px solid #c1272d !important;
+    background: #ffffff;
+    color: #c1272d;
+}
+
+.unpublishBtn:hover {
+    background: #fde9ea;
+}
+
+/* ---------- Modal backdrops ---------- */
+
+#assessmentModal,
+#publishModal,
+#rubricsModal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/*
+JavaScript changes display from none to flex:
+
+element.style.display = 'flex';
+*/
+
+/* ---------- Modal content ---------- */
+
+.modalContent {
+    width: min(500px, 100%);
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    padding: 28px;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+#assessmentModal .modalContent {
+    width: min(500px, 100%);
+}
+
+#publishModal .modalContent {
+    width: min(500px, 100%);
+}
+
+#rubricsModal .modalContent {
+    width: min(600px, 100%);
+}
+
+/* ---------- Modal headings ---------- */
+
+#modalTitle,
+#publishModalTitle,
+#rubricsModalTitle {
+    margin: 0 0 20px;
+    color: #635f5f;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+/* ---------- Locked-fields message ---------- */
+
+.editLockNotice {
+    margin: -8px 0 18px;
+    padding: 10px 12px;
+    border-left: 4px solid #c1272d;
+    background: #fde9ea;
+    color: #c1272d;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+/* ---------- Forms ---------- */
+
+#assessmentForm,
+#publishForm {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#assessmentForm label,
+#publishForm label {
+    margin: 0 0 -4px;
+    color: #635f5f;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#assessmentForm input,
+#assessmentForm select,
+#assessmentForm textarea,
+#publishForm input,
+#publishForm select,
+#publishForm textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #635f5f;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+#assessmentForm input:focus,
+#assessmentForm select:focus,
+#assessmentForm textarea:focus,
+#publishForm input:focus,
+#publishForm select:focus,
+#publishForm textarea:focus {
+    border-color: #c1272d;
+    outline: none;
+}
+
+#assessmentForm textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.required-asterisk {
+            color: red;
+            margin-left: 2px;
+        }
+
+/* Disabled locked fields */
+
+#assessmentForm input:disabled,
+#assessmentForm select:disabled {
+    background: #eeeeee;
+    color: #777777;
+    cursor: not-allowed;
+}
+
+/* ---------- Modal action row ---------- */
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+/* ---------- Publish information ---------- */
+
+.publishInfo {
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border-radius: 6px;
+    background: #f9f6f6;
+}
+
+.publishInfo p {
+    margin: 0 0 6px;
+    color: #635f5f;
+    font-size: 14px;
+}
+
+.publishInfo p:last-child {
+    margin-bottom: 0;
+}
+
+/* ---------- Rubrics modal ---------- */
+
+#rubricsModalContent {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 0;
+    color: #635f5f;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+/* ---------- Table icons ---------- */
+
+.editBtn,
+.deleteBtn,
+.viewRubricsBtn {
+    vertical-align: middle;
+    cursor: pointer;
+    transition:
+        opacity 0.15s ease,
+        transform 0.15s ease;
+}
+
+.editBtn:hover,
+.deleteBtn:hover,
+.viewRubricsBtn:hover {
+    opacity: 0.7;
+    transform: scale(1.08);
+}
+
+.checkIcon {
+    display: block;
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+/* ---------- Responsive design ---------- */
+
+@media (max-width: 800px) {
+    .assessment-list-page .page-title-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .assessment-filter-toolbar .filters,
+    .assessment-filter-toolbar .filterInput {
+        width: 100%;
+    }
+
+    .assessment-filter-toolbar .filters {
+        flex-direction: column;
+    }
+
+    #addAssessmentBtn {
+        width: 100%;
+    }
+
+    .modalContent {
+        padding: 22px 18px;
+    }
+}
+

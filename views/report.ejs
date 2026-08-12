@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Progress Report - <%= student.name || student.studentName || 'Student ' + (student.id || student.studentId) %></title>
+    <link rel="stylesheet" href="/stylesheets/bands.css">
+    <style>
+        /* Progress Report Specific Styles */
+        .report-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .report-header h1 {
+            color: #C1272D;
+            margin-bottom: 0.25rem;
+        }
+
+        .student-meta {
+            color: #666;
+            margin-top: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .filter-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: #f4f4f4;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-section select {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .btn-filter {
+            background-color: #C1272D;
+            color: white;
+            border: none;
+            padding: 0.45rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-ai {
+            background-color: #2b579a;
+            color: white;
+            border: none;
+            padding: 0.45rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-ai:disabled {
+            background-color: #8fa2c1;
+            cursor: not-allowed;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 2rem;
+            border: 1px solid #eee;
+        }
+
+        .meta-grid div span {
+            display: block;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .meta-grid div strong {
+            font-size: 1rem;
+        }
+
+        .semester-header-row td {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            font-size: 1.05rem;
+            color: #C1272D;
+            border-top: 2px solid #C1272D;
+        }
+
+        .remarks-textarea {
+            width: 100%;
+            min-height: 50px;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .ai-summary-card {
+            background-color: #f8f9fa;
+            border-left: 4px solid #C1272D;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+        }
+
+        .badge-pass {
+            background-color: #e6f4ea;
+            color: #137333;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-warn {
+            background-color: #fef7e0;
+            color: #b06000;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-band {
+            background-color: #eef2f7;
+            color: #2b4c7e;
+            border: 1px solid #d0dbe7;
+            padding: 0.2rem 0.65rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        @media print {
+
+            header,
+            nav,
+            aside,
+            .sidebar,
+            .top-nav,
+            .hamburger-menu,
+            .btn-filter,
+            .summary-row,
+            p.summary-row {
+                display: none !important;
+            }
+
+
+            body, 
+            main, 
+            .content-wrapper,
+            .printable-area {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: none !important;
+                box-shadow: none !important;
+                background: white !important;
+            }
+
+
+            h1, h2, h3 {
+                position: static !important;
+                margin-top: 1rem !important;
+                page-break-after: avoid;
+            }
+
+            .table-wrap, table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+
+            .remarks-textarea {
+                border: 1px solid #ccc !important;
+                resize: none;
+            }
+        }
+        
+    </style>
+</head>
+
+<body>
+<div class="app-shell">
+    <%- include('./partials/top-nav', { activeTop: 'reports' }) %>
+    <%- include('./partials/sidebar', { type: type || 'student', activeSide: activeSide || 'reports', student }) %>
+
+    <main class="content-page">
+        <div class="report-header">
+            <h1>Progress Report</h1>
+            <h2><%= student.name || student.studentName || 'Student ' + (student.id || student.studentId) %></h2>
+            <p class="student-meta">Current Band: <%= student.currentBand || (band && band.id) || 'N/A' %></p>
+        </div>
+
+        <!-- Filter Controls & AI Insight -->
+        <form method="GET" action="/reports/student/<%= student.id || student.studentId %>" class="filter-section">
+            <label for="startSem">From:</label>
+            <select name="startSem" id="startSem">
+                <% (availableSemesters || []).forEach(s => { %>
+                    <option value="<%= s.raw %>" <%= String(selectedStartSem) === String(s.raw) ? 'selected' : '' %>>
+                        <%= s.label %>
+                    </option>
+                <% }) %>
+            </select>
+
+            <label for="endSem">To:</label>
+            <select name="endSem" id="endSem">
+                <% (availableSemesters || []).forEach(s => { %>
+                    <option value="<%= s.raw %>" <%= String(selectedEndSem) === String(s.raw) ? 'selected' : '' %>>
+                        <%= s.label %>
+                    </option>
+                <% }) %>
+            </select>
+
+            <button type="submit" class="btn-filter">Filter</button>
+            <button type="button" id="btn-generate-ai" class="btn-ai">Generate AI Insights</button>
+        </form>
+
+        <!-- Student Meta Information -->
+        <div class="meta-grid">
+            <div>
+                <span>Date of Enrolment</span>
+                <strong><%= student.formattedEnrolmentDate || student.enrolmentDate || 'N/A' %></strong>
+            </div>
+            <div>
+                <span>Age</span>
+                <strong><%= student.age ? student.age + ' years old' : 'N/A' %></strong>
+            </div>
+            <div>
+                <span>Centre</span>
+                <strong><%= student.centreName || student.centreId || 'N/A' %></strong>
+            </div>
+        </div>
+
+        <!-- AI Output Block -->
+        <div id="ai-summary-card" class="ai-summary-card" style="display: none;">
+            <h3 style="margin-top:0; color:#C1272D;">AI Insights</h3>
+            <div id="ai-card-content"></div>
+        </div>
+
+        <!-- Performance Section -->
+        <section>
+            <h2>Student Performance</h2>
+            
+            <div class="table-wrap">
+                <table>
+                    <tbody>
+                    <% if (typeof groupedBySemester !== 'undefined' && Object.keys(groupedBySemester).length > 0) { %>
+                        <% Object.keys(groupedBySemester).sort().reverse().forEach(semKey => { %>
+                            <% 
+                            const components = groupedBySemester[semKey]; 
+                            const compKeys = Object.keys(components);
+                            
+                            let semBand = 'N/A';
+                            if (compKeys.length > 0 && components[compKeys[0]].length > 0) {
+                                semBand = components[compKeys[0]][0].assessmentBand || components[compKeys[0]][0].band || 'N/A';
+                            }
+
+                            let passCount = 0;
+                            let totalAssessments = 0;
+                            compKeys.forEach(compKey => {
+                                components[compKey].forEach(item => {
+                                    totalAssessments++;
+                                    if (Number(item.score) >= Number(item.passingMark)) passCount++;
+                                });
+                            });
+                            %>
+
+                            <tr class="semester-header-row">
+                                <td colspan="4">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <span><%= typeof formatSemester === 'function' ? formatSemester(semKey) : semKey %></span>
+                                        <span class="badge-band">Band <%= semBand %></span>
+                                        <span class="<%= passCount >= 4 ? 'badge-pass' : 'badge-warn' %>">
+                                            Passes: <%= passCount %> / <%= totalAssessments %>
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Component</th>
+                                <th>Assessment</th>
+                                <th>Score / Passing</th>
+                                <th>Status</th>
+                            </tr>
+
+                            <% compKeys.forEach((compKey) => { %>
+                                <% const items = components[compKey]; %>
+                                <% items.forEach((item, itemIndex) => { %>
+                                    <tr>
+                                        <% if (itemIndex === 0) { %>
+                                            <td rowspan="<%= items.length %>" style="vertical-align: middle; font-weight: bold;">
+                                                <%= compKey %>
+                                            </td>
+                                        <% } %>
+
+                                        <td><%= item.assessmentType %></td>
+                                        <td><strong><%= item.score %></strong> / <%= item.passingMark || '-' %></td>
+                                        <td>
+                                            <% if (Number(item.score) >= Number(item.passingMark)) { %>
+                                                <span class="badge-pass">Good</span>
+                                            <% } else { %>
+                                                <span class="badge-warn">Needs Improvement</span>
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% }) %>
+
+                            <tr class="remarks-row">
+                                <td colspan="4" style="padding: 1rem 0.5rem;">
+                                    <label style="display: block; font-weight: bold; margin-bottom: 0.5rem; color: #333;">
+                                        Semester Remarks:
+                                    </label>
+                                    <textarea class="remarks-textarea" placeholder="Add remarks for <%= semKey %>..."></textarea>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 2rem;">
+                                No assessment records found.
+                            </td>
+                        </tr>
+                    <% } %>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="summary-row" style="margin-top: 1.5rem;">
+                <button class="btn-filter btn-submit" onclick="window.print()">Confirm and Generate Progress Report</button>
+            </p>
+        </section>
+    </main>
+</div>
+
+<script src="/javascripts/bands.js"></script>
+<script>
+    document.getElementById('btn-generate-ai').addEventListener('click', async () => {
+        const btn = document.getElementById('btn-generate-ai');
+        const container = document.getElementById('ai-summary-card');
+        const content = document.getElementById('ai-card-content');
+        
+        const startSem = document.getElementById('startSem')?.value || '';
+        const endSem = document.getElementById('endSem')?.value || '';
+        const studentId = '<%= student.id || student.studentId %>';
+
+        container.style.display = 'block'; 
+        btn.disabled = true;
+        btn.innerText = 'Generating...';
+        content.innerHTML = '<p><em>Analyzing student performance data...</em></p>';
+
+        try {
+            const res = await fetch(`/reports/student/${studentId}/ai-insight?startSem=${startSem}&endSem=${endSem}`);
+            const data = await res.json();
+            
+            if (data.aiInsight) {
+                content.innerHTML = data.aiInsight;
+            } else {
+                content.innerHTML = '<p><em>Unable to generate insights at this time.</em></p>';
+            }
+        } catch (err) {
+            console.error('Error fetching AI insight:', err);
+            content.innerHTML = '<p><em>Error generating AI insight. Please try again.</em></p>';
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Generate AI Insights';
+        }
+    });
+</script>
+</body>
+
+</html>
