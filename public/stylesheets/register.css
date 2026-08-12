@@ -96,6 +96,17 @@ button:hover{
     background:#c1272d;
 }
 
+.form-error{
+
+    background:#fdecea;
+    color:#b3261e;
+    text-align:center;
+    padding:12px;
+    border-radius:12px;
+    margin-bottom:25px;
+    font-size:18px;
+}
+
 /* RIGHT */
 
 .right-panel{

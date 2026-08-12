@@ -14,10 +14,12 @@ async function showPage(res, educatorId, message) {
     if (!educator) return res.status(404).send('Educator not found');
 
     const name = EducatorModel.splitName(educator.educatorName);
+    const programmes = await EducatorModel.getProgrammes(educator.educatorName);
     res.render('edit-educator', {
         educator: educator,
         firstName: name.firstName,
         lastName: name.lastName,
+        programmes: programmes,
         message: message
     });
 }
