@@ -73,25 +73,32 @@
 
             <h2>DAS Programme Information</h2>
 
-            <!-- Placeholder rows. semesterBandEducator stores the educator's name as
-                 free text, so there is no reliable way to look up this educator's own
-                 bands yet. Load the real rows once that table links to educatorId. -->
-            <table>
-                <tr>
-                    <th>Year</th>
-                    <th>Semester</th>
-                    <th>Band</th>
-                    <th>Role</th>
-                    <th>Centre</th>
-                </tr>
-                <tr>
-                    <td>2026</td>
-                    <td>Semester 2</td>
-                    <td>A2</td>
-                    <td>Lead Educator</td>
-                    <td><%= educator.centreName || 'Not set' %></td>
-                </tr>
-            </table>
+            <% if (programmes.length === 0) { %>
+
+                <p class="hint">No programme information yet. Bands are assigned in Band Settings.</p>
+
+            <% } else { %>
+
+                <table>
+                    <tr>
+                        <th>Year</th>
+                        <th>Semester</th>
+                        <th>Band</th>
+                        <th>Role</th>
+                        <th>Centre</th>
+                    </tr>
+                    <% programmes.forEach(function (programme) { %>
+                        <tr>
+                            <td><%= programme.year %></td>
+                            <td>Semester <%= programme.semester %></td>
+                            <td><%= programme.band %></td>
+                            <td><%= programme.role %></td>
+                            <td><%= programme.centre %></td>
+                        </tr>
+                    <% }) %>
+                </table>
+
+            <% } %>
 
             <button type="submit" class="save-button">Save Changes</button>
 

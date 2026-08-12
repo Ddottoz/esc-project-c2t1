@@ -11,6 +11,31 @@ async function getEducatorById(id) {
     return rows[0];
 }
 
+// Creates a new educator account and returns its new id.
+async function createEducator(name, email, password) {
+    const hash = await bcrypt.hash(password, 10);
+    const [result] = await pool.query(
+        `INSERT INTO educator (educatorName, email, passwordHash, isAuthenticated) VALUES (?, ?, ?, 1)`,
+        [name, email, hash]
+    );
+    return result.insertId;
+}
+
+// Checks the sign up form.
+// Returns an error message, or an empty string when the form is fine.
+function checkSignUpForm(name, email, password, confirmPassword) {
+    if (!name || !email || !password) {
+        return 'Name, email and password are required';
+    }
+    if (password.length < 8) {
+        return 'Password must be at least 8 characters';
+    }
+    if (password !== confirmPassword) {
+        return 'Passwords do not match';
+    }
+    return '';
+}
+
 // Checks an email and password against the database.
 // Returns the matching educator (without the password) when they are correct,
 // or null when the email is not found or the password is wrong.
@@ -57,6 +82,37 @@ function checkForm(firstName, email, newPassword, confirmPassword) {
     return '';
 }
 
+// Checks if any educator already uses this email (used when signing up)
+async function emailExists(email) {
+    const [rows] = await pool.query(`SELECT educatorId FROM educator WHERE email = ?`, [email]);
+    return rows.length > 0;
+}
+
+// Finds an educator by email. Returns null when there is no account.
+async function getEducatorByEmail(email) {
+    const [rows] = await pool.query(
+        `SELECT educatorId, educatorName, email FROM educator WHERE email = ?`, [email]
+    );
+    if (rows.length === 0) return null;
+    return rows[0];
+}
+
+// The bands this educator teaches, for the DAS Programme Information table.
+// semesterBandEducator stores the educator's name as text, so we match on name.
+async function getProgrammes(educatorName) {
+    const [rows] = await pool.query(
+        `SELECT sem.academicYear AS year, sem.semesterNo AS semester,
+                sb.band, sbe.role, sbe.centre
+         FROM semesterBandEducator sbe
+         JOIN semesterBand sb ON sb.semesterBandId = sbe.semesterBandId
+         JOIN semester sem ON sem.semesterId = sb.semesterId
+         WHERE sbe.educatorName = ?
+         ORDER BY sem.academicYear DESC, sem.semesterNo DESC, sb.band`,
+        [educatorName]
+    );
+    return rows;
+}
+
 // Checks if another educator is already using this email
 async function emailTaken(email, id) {
     const [rows] = await pool.query(
@@ -78,4 +134,8 @@ async function updatePassword(id, newPassword) {
     await pool.query(`UPDATE educator SET passwordHash = ? WHERE educatorId = ?`, [hash, id]);
 }
 
-module.exports = {getEducatorById, authenticate, splitName, joinName, checkForm, emailTaken, updateEducator, updatePassword};
+module.exports = {
+    getEducatorById, getEducatorByEmail, authenticate,
+    createEducator, checkSignUpForm, emailExists, getProgrammes,
+    splitName, joinName, checkForm, emailTaken, updateEducator, updatePassword
+};
