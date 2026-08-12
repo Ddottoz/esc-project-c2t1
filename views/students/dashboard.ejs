@@ -15,6 +15,8 @@
 
     <main class="content-page">
         <h1><%= student.name %></h1>
+        <!-- makes it clear when this is a current or past Band dashboard -->
+        <p class="dashboard-band-context"><%= band.name %> &middot; <%= band.year %> <%= band.semester %></p>
 
         <section>
             <h2>Assessments</h2>
@@ -124,14 +126,23 @@
                             <td><%= pastBand.term %></td>
                             <td>
                                 <% if (pastBand.bandId) { %>
-                                    <a class="past-band-link" href="/bands/<%= pastBand.bandId %>/assessments">
+                                    <!-- opens the same student's dashboard for the selected past Band -->
+                                    <a
+                                        class="past-band-link"
+                                        href="/bands/<%= pastBand.bandId %>/students/<%= student.id %>"
+                                        title="Open <%= pastBand.band %> dashboard for <%= pastBand.term %>"
+                                    >
                                         <%= pastBand.band %>
                                     </a>
                                 <% } else { %>
                                     <%= pastBand.band %>
                                 <% } %>
                             </td>
-                            <td><span class="status-badge status-graded"><%= pastBand.status %></span></td>
+                            <td>
+                                <span class="status-badge status-<%= pastBand.status.toLowerCase() %>">
+                                    <%= pastBand.status %>
+                                </span>
+                            </td>
                         </tr>
                     <% }) %>
                     </tbody>

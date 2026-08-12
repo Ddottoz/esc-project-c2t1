@@ -522,6 +522,16 @@ th {
     background: #fff4d4;
 }
 
+.status-pass {
+    color: var(--green);
+    background: #e5f7e9;
+}
+
+.status-fail {
+    color: var(--red);
+    background: #fde9ea;
+}
+
 .pass {
     color: var(--green);
 }
@@ -532,6 +542,11 @@ th {
 
 .summary-row {
     font-size: 16px;
+}
+
+.dashboard-band-context {
+    margin-top: -12px;
+    color: #666;
 }
 
 .assessment-table {

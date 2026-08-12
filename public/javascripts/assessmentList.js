@@ -203,12 +203,13 @@ function openEditModal(assessmentId, assessments) {
     document.getElementById('component').value = assessment.component;
     document.getElementById('passingMark').value = assessment.passingMark;
     document.getElementById('totalMark').value = assessment.totalMark;
-    document.getElementById('weight').value = assessment.weight;
+    // shown for reference only, weightage is edited in Band Settings
+    document.getElementById('weight').value = assessment.weight ?? 0;
     document.getElementById('rubrics').value = assessment.rubrics;
     document.getElementById('modalTitle').textContent = 'Edit Assessment';
 
     // Lock core fields if this assessment has ever been published, anywhere.
-    // Only weight + rubrics stay editable.
+    // only rubrics stay editable after the assessment has been published
     const lockedFieldIds = ['assessmentType', 'component', 'passingMark', 'totalMark'];
     lockedFieldIds.forEach(id => {
         document.getElementById(id).disabled = !!assessment.isPublishedAnywhere;
@@ -281,7 +282,6 @@ document.getElementById('assessmentForm').addEventListener('submit', async (e) =
         component: document.getElementById('component').value,
         passingMark: Number(document.getElementById('passingMark').value),
         totalMark: Number(document.getElementById('totalMark').value),
-        weight: Number(document.getElementById('weight').value),
         rubrics: document.getElementById('rubrics').value,
         semesterId: Number(semesterId),
         band: band // from the EJS-injected variable at the top

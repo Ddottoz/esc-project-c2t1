@@ -9,7 +9,7 @@ router.get('/', function(req, res, next) {
 
 /* Handle the login form.
    Check the email and password against the database. If they match, remember
-   who is logged in (in a cookie) and show their profile. If not, show an error. */
+   who is logged in (in a cookie) and open Bands. If not, show an error. */
 router.post('/', async function(req, res, next) {
   try {
     const email = (req.body.email || '').trim();
@@ -21,7 +21,8 @@ router.post('/', async function(req, res, next) {
     }
 
     res.cookie('educatorId', educator.educatorId);
-    res.redirect('/educator');
+    // successful login goes straight to the Bands dashboard
+    res.redirect('/bands');
   } catch (err) {
     next(err);
   }

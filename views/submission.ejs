@@ -47,7 +47,12 @@
         </a>
 
         <nav class="sidebar-navigation">
-          <a href = "/getAssessments/semband/<%= encodeURIComponent(submissionPage.semester.semesterBandId)%>"class="sidebar-link" title="Answer Key">
+          <!-- answer keys are viewed through the assessment rubrics page -->
+          <a
+            href="/assessments/<%= encodeURIComponent(submissionPage.semester.semesterBandId) %>/view"
+            class="sidebar-link"
+            title="Answer Key"
+          >
             <span class="sidebar-icon">
               <img src="/images/answer_key.png" alt="" class="answer-key-sidebar-icon" aria-hidden="true">
             </span>
@@ -128,10 +133,18 @@
                   <td data-sort-date="<%= submission.dueDateSort %>"><%= submission.dueDate %></td>
 
                   <td>
-                    <a href="/upload/<%= submission.studentAssessmentId %>" class="table-action table-action-enabled">
-                      <img src="/images/upload.png" alt="" class="upload-action-icon" aria-hidden="true">
-                      <span>Upload</span>
-                    </a>
+                    <% if (submission.studentAssessmentId) { %>
+                      <a href="/upload/<%= submission.studentAssessmentId %>" class="table-action table-action-enabled">
+                        <img src="/images/upload.png" alt="" class="upload-action-icon" aria-hidden="true">
+                        <span>Upload</span>
+                      </a>
+                    <% } else { %>
+                      <!-- legacy enrollment is shown even if its assignment record is missing -->
+                      <span class="table-action table-action-disabled" aria-disabled="true" title="Assessment is not assigned yet">
+                        <img src="/images/upload.png" alt="" class="upload-action-icon" aria-hidden="true">
+                        <span>Upload</span>
+                      </span>
+                    <% } %>
                   </td>
 
                   <td>
