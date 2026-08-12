@@ -123,8 +123,12 @@ function renderRows() {
             <td>${formatDate(s.enrollmentDate)}</td>
             <td>${s.graduated ? 'Yes' : 'No'}</td>
             <td class="row-actions">
-                <button class="edit-btn" title="Edit" data-id="${s.studentId}">&#9998;</button>
-                <button class="delete-btn" title="Delete" data-id="${s.studentId}">&#128465;</button>
+                <button class="edit-btn" title="Edit" aria-label="Edit student" data-id="${s.studentId}">
+                    <span class="row-action-icon edit-action-icon" aria-hidden="true"></span>
+                </button>
+                <button class="delete-btn" title="Delete" aria-label="Delete student" data-id="${s.studentId}">
+                    <span class="row-action-icon delete-action-icon" aria-hidden="true"></span>
+                </button>
             </td>
         `;
         tbody.appendChild(tr);

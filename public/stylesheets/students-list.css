@@ -209,6 +209,7 @@ button:hover, .button-link:hover {
 /* Action Icons (Edit / Delete) */
 .row-actions {
     display: flex;
+    align-items: center;
     gap: 8px;
     justify-content: flex-end;
 }
@@ -221,12 +222,25 @@ button:hover, .button-link:hover {
     cursor: pointer;
 }
 
-.row-actions .edit-btn {
-    color: #635F5F;
+.row-action-icon {
+    display: block;
+    flex-shrink: 0;
 }
 
-.row-actions .delete-btn {
-    color: #C1272D;
+.edit-action-icon {
+    width: 24px;
+    height: 24px;
+    background-color: #635F5F;
+    -webkit-mask: url('/images/edit_icon.webp') center / contain no-repeat;
+    mask: url('/images/edit_icon.webp') center / contain no-repeat;
+}
+
+.delete-action-icon {
+    width: 17px;
+    height: 17px;
+    background-color: #C1272D;
+    -webkit-mask: url('/images/delete_icon.webp') center / contain no-repeat;
+    mask: url('/images/delete_icon.webp') center / contain no-repeat;
 }
 
 .empty-state {

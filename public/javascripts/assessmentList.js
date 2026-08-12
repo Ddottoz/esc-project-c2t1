@@ -103,7 +103,7 @@ function renderTable(assessments) {
     tbody.innerHTML = '';
 
     if (assessments.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4">No assessments found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10">No assessments found</td></tr>';
         return;
     }
 
@@ -114,7 +114,11 @@ function renderTable(assessments) {
         // Publish / Unpublish cell
         let publishCell;
         if (!a.isPublished) {
-            publishCell = `<button class="publishBtn" data-id="${a.assessmentId}">Publish</button>`;
+            publishCell = `
+                <button class="publishBtn" data-id="${a.assessmentId}" type="button">
+                    <span>Publish</span>
+                </button>
+            `;
         } else if (Number(a.totalSubmitted) === 0) {
             // published this semester, but nothing submitted/graded yet -> allow unpublish
             publishCell = `
