@@ -1,8 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+
 *{
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:Arial, Helvetica, sans-serif;
+    font-family:Poppins, Arial, sans-serif;
 }
 
 body{
@@ -122,6 +124,17 @@ body{
     width:100%;
     outline:none;
     font-size:28px;
+}
+
+.login-error{
+
+    background:#fdecea;
+    color:#b3261e;
+    text-align:center;
+    padding:12px;
+    border-radius:12px;
+    margin-bottom:25px;
+    font-size:18px;
 }
 
 .forgot{

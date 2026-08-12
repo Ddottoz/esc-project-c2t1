@@ -20,6 +20,7 @@ var bandsRouter = require('./routes/bands');
 var uploadRouter = require('./routes/upload');
 var viewAnalysisRouter = require("./routes/viewAnalysisRoutes");
 var submissionRouter = require("./routes/submissionRoutes");
+var educatorRouter = require('./routes/educator');
 
 var app = express();
 
@@ -47,6 +48,7 @@ app.use('/upload', uploadRouter);
 app.use('/public/uploads', express.static('public/uploads'));
 app.use("/viewanalysis", viewAnalysisRouter);
 app.use("/submission", submissionRouter);
+app.use('/educator', educatorRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
