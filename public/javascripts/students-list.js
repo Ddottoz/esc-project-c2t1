@@ -1,4 +1,5 @@
 let allStudents = [];   // full unfiltered list, loaded once
+let activeSort = null;
 
 // helper to escape HTML special characters & prevent XSS injection
 // converts dangerous html characters to their html entity equivalents
@@ -78,7 +79,7 @@ function getFilteredStudents() {
     const graduated = document.getElementById('filterGraduated').value;
     const search = document.getElementById('searchBox').value.trim().toLowerCase();
 
-    return allStudents.filter((s) => {
+    const students = allStudents.filter((s) => {
         if (band && s.currentBand !== band) return false;
         if (centreId && String(s.centreId) !== centreId) return false;
         if (educatorId && String(s.educatorId) !== educatorId) return false;
@@ -93,6 +94,37 @@ function getFilteredStudents() {
         }
         return true;
     });
+
+    if (!activeSort) return students;
+
+    const multiplier = activeSort.direction === 'asc' ? 1 : -1;
+    return students.sort((a, b) => {
+        const aValue = getSortValue(a, activeSort.key, activeSort.type);
+        const bValue = getSortValue(b, activeSort.key, activeSort.type);
+        const comparison = activeSort.type === 'text'
+            ? String(aValue).localeCompare(String(bValue), undefined, {numeric: true})
+            : Number(aValue) - Number(bValue);
+        const aName = `${a.firstName || ''} ${a.lastName || ''}`;
+        const bName = `${b.firstName || ''} ${b.lastName || ''}`;
+        return comparison * multiplier || aName.localeCompare(bName);
+    });
+}
+
+function getSortValue(student, key, type) {
+    const values = {
+        name: `${student.firstName || ''} ${student.lastName || ''}`.trim(),
+        band: student.currentBand || '',
+        centre: student.centreName || '',
+        educator: student.educatorName || '',
+        nric: student.nric || '',
+        schoolLevel: student.schoolLevel || '',
+        school: student.schoolName || '',
+        age: calculateAge(student.dateOfBirth) || 0,
+        enrollmentDate: student.enrollmentDate ? Date.parse(student.enrollmentDate) || 0 : 0,
+        graduated: student.graduated ? 1 : 0
+    };
+    const value = values[key];
+    return type === 'text' ? String(value || '').toLowerCase() : value;
 }
 
 // renders student table rows & updates state indicator
@@ -199,6 +231,18 @@ async function init() {
 
         const downloadBtn = document.getElementById('downloadBtn');
         if (downloadBtn) downloadBtn.addEventListener('click', downloadCsv);
+
+        document.querySelectorAll('.student-table .sort-button').forEach((button) => {
+            button.addEventListener('click', () => {
+                const isSameColumn = activeSort && activeSort.key === button.dataset.sort;
+                activeSort = {
+                    key: button.dataset.sort,
+                    type: button.dataset.type,
+                    direction: isSameColumn && activeSort.direction === 'asc' ? 'desc' : 'asc'
+                };
+                renderRows();
+            });
+        });
     } catch (err) {
         alert(err.message || 'Failed to initialise students list');
     }
