@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var EducatorModel = require('../models/educator');
+var {setAuthCookie} = require('../middleware/auth');
 
 /* Show the register page. */
 router.get('/', function(req, res, next) {
@@ -26,7 +27,7 @@ router.post('/', async function(req, res, next) {
     const educatorId = await EducatorModel.createEducator(name, email, password);
 
     // Log the new educator straight in and show their profile.
-    res.cookie('educatorId', educatorId);
+    setAuthCookie(res, educatorId);
     res.redirect('/educator');
   } catch (err) {
     next(err);

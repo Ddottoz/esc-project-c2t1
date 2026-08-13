@@ -1,8 +1,12 @@
 const pool = require('./db');
 
 async function getStudentsByBandAndSemester(connection, band, semesterId) {
+    // studentSemBand is the actual enrollment list for this Band and semester
     const [students] = await connection.query(
-        `SELECT studentId FROM student WHERE currentBand = ? AND currentSemester = ?`,
+        `SELECT studentId
+         FROM studentSemBand
+         WHERE band = ? AND semesterId = ?
+         ORDER BY studentId`,
         [band, semesterId]
     );
     return students;
@@ -45,7 +49,7 @@ async function addAssessment(connection, { assessmentType, component, band, pass
     return result.insertId;
 }
 
-async function createAssessment({ assessmentType, component, band, passingMark, totalMark, rubrics }, semesterId, weight) {
+async function createAssessment({ assessmentType, component, band, passingMark, totalMark, rubrics }, semesterId) {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
@@ -72,8 +76,8 @@ async function createAssessment({ assessmentType, component, band, passingMark, 
             return { success: false, reason: 'SEMESTER_BAND_NOT_FOUND' };
         }
 
-        // 3. Create the weight record linking them
-        const weightCreated = await createSemBandAssessmentWgt(connection, semesterBandId, assessmentId, weight);
+        // new assessments always start at 0, weightage is only changed in Band Settings
+        const weightCreated = await createSemBandAssessmentWgt(connection, semesterBandId, assessmentId, 0);
         if (!weightCreated) {
             await connection.rollback();
             return { success: false, reason: 'WEIGHT_CREATION_FAILED' };
@@ -90,7 +94,7 @@ async function createAssessment({ assessmentType, component, band, passingMark, 
     }
 }
 
-async function updateAssessment(assessmentId, { assessmentType, component, band, passingMark, totalMark, rubrics }, semesterId, weight) {
+async function updateAssessment(assessmentId, { assessmentType, component, band, passingMark, totalMark, rubrics }, semesterId) {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
@@ -111,7 +115,8 @@ async function updateAssessment(assessmentId, { assessmentType, component, band,
             return { success: false, reason: 'ALREADY_PUBLISHED' };
         }
 
-        // published in ANY semester (including past ones) → only weight + rubrics can move
+        // published before means only rubrics can change here
+        // published before means only rubrics can change here
         const [[{ publishedAnywhere }]] = await connection.query(
             `SELECT COUNT(*) AS publishedAnywhere FROM studentAssessment WHERE assessmentId = ?`,
             [assessmentId]
@@ -152,11 +157,6 @@ async function updateAssessment(assessmentId, { assessmentType, component, band,
                 [assessmentType, component, band, passingMark, totalMark, rubrics, assessmentId]
             );
         }
-
-        await connection.query(
-            `INSERT INTO semesterBandAssessmentWeight (semesterBandId, assessmentId, weight) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE weight = VALUES(weight)`,
-            [semesterBandId, assessmentId, weight]
-        );
 
         await connection.commit();
         return { success: true };

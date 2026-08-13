@@ -2,11 +2,10 @@ const express = require('express');
 const router = express.Router();
 const EducatorModel = require('../models/educator');
 
-// The logged-in educator's id is stored in a cookie when they log in.
-// Returns the id, or null if nobody is logged in.
+// The authentication guard checks the signed cookie once before this route.
 function loggedInEducatorId(req) {
-    const id = Number(req.cookies.educatorId);
-    return id ? id : null;
+    const id = Number(req.educatorId);
+    return Number.isInteger(id) && id > 0 ? id : null;
 }
 
 async function showPage(res, educatorId, message) {

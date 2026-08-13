@@ -76,7 +76,7 @@
         <h2 class="hh2">Upload PDF Document</h2>
         
 
-        <form action="/upload/<%= studentAssessmentId %>" method="POST" enctype="multipart/form-data">
+        <form id="upload-form" action="/upload/<%= studentAssessmentId %>" method="POST" enctype="multipart/form-data">
 
             <div>
                 <label for="pdf">Select PDF File</label><br>
@@ -110,7 +110,7 @@
                 </button> -->
 
                 <!-- This submits the form -->
-                <button type="submit" class="submit">
+                <button id="upload-submit" type="submit" class="submit">
                     Submit
                 </button>
 
@@ -148,6 +148,24 @@
 
 <script>
     const message = "<%= message %>";
+    const uploadForm = document.getElementById('upload-form');
+    const uploadSubmit = document.getElementById('upload-submit');
+
+    function setUploadLoading(isLoading) {
+        document.body.classList.toggle('upload-loading', isLoading);
+        uploadForm.setAttribute('aria-busy', String(isLoading));
+        uploadSubmit.disabled = isLoading;
+        uploadSubmit.textContent = isLoading ? 'Uploading...' : 'Submit';
+    }
+
+    uploadForm.addEventListener('submit', () => {
+        setUploadLoading(true);
+    });
+
+    // Restore the form when returning to this page from the browser cache.
+    window.addEventListener('pageshow', () => {
+        setUploadLoading(false);
+    });
 
     if (message === "success") {
         alert("Upload successful!");

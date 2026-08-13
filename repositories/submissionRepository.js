@@ -29,7 +29,7 @@ async function findBySemesterBandAndAssessmentType(semesterId, band, assessmentT
     await pool.execute(
       `SELECT
          student_assessment.studentAssessmentId,
-         student_assessment.studentId,
+         enrollment.studentId,
          TRIM(CONCAT(
            COALESCE(student.firstName, ''),
            ' ',
@@ -56,34 +56,35 @@ async function findBySemesterBandAndAssessmentType(semesterId, band, assessmentT
            ELSE 1
          END AS hasAnalysis
 
-       FROM studentAssessment
-            student_assessment
-
-       INNER JOIN assessment
-         ON assessment.assessmentId =
-            student_assessment.assessmentId
+       FROM studentSemBand enrollment
 
        INNER JOIN student
-         ON student.studentId =
-            student_assessment.studentId
+         ON student.studentId = enrollment.studentId
+
+       INNER JOIN assessment
+         ON LOWER(assessment.band) = LOWER(enrollment.band)
+        AND LOWER(assessment.assessmentType) = LOWER(?)
+
+       LEFT JOIN studentAssessment student_assessment
+         ON student_assessment.studentId = enrollment.studentId
+        AND student_assessment.semesterId = enrollment.semesterId
+        AND student_assessment.assessmentId = assessment.assessmentId
 
        LEFT JOIN assessment_analysis
          ON assessment_analysis.submissionId =
             student_assessment.studentAssessmentId
 
-       WHERE student_assessment.semesterId = ?
-         AND LOWER(assessment.band) =
-             LOWER(?)
-         AND LOWER(assessment.assessmentType) =
+       WHERE enrollment.semesterId = ?
+         AND LOWER(enrollment.band) =
              LOWER(?)
 
        ORDER BY
-         student_assessment.studentId,
+         enrollment.studentId,
          student_assessment.studentAssessmentId`,
       [
+        assessmentType,
         semesterId,
-        band,
-        assessmentType
+        band
       ]
     );
 
@@ -124,7 +125,9 @@ async function findBySemesterBandAndAssessmentType(semesterId, band, assessmentT
 
         return {
           studentAssessmentId:
-            row.studentAssessmentId,
+            hasValue(row.studentAssessmentId)
+              ? row.studentAssessmentId
+              : null,
 
           studentId:
             valueOrNA(
@@ -206,6 +209,22 @@ function normaliseStatus(status) {
     return {
       value: "Assigned",
       className: "assigned"
+    };
+  }
+
+
+  if (cleanStatus === "submitted" || cleanStatus === "analysing") {
+    return {
+      value: "Submitted",
+      className: "submitted"
+    };
+  }
+
+
+  if (cleanStatus === "missing" || cleanStatus === "") {
+    return {
+      value: "Missing",
+      className: "missing"
     };
   }
 

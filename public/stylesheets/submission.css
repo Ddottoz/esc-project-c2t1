@@ -100,6 +100,8 @@ th[aria-sort="descending"] .submission-sort-icon::after { border-top-color: var(
 .status-label { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
 .status-graded { color: var(--green); background-color: #e5f7e9; }
 .status-assigned { color: var(--yellow); background-color: #fff4d4; }
+.status-submitted { color: #2b579a; background-color: #e8f0fc; }
+.status-missing { color: var(--red); background-color: #fde9ea; }
 .status-unavailable { color: var(--gray); background-color: #eeeeee; }
 .table-action { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
 .review-action-icon { width: 17px; height: 17px; display: inline-block; flex-shrink: 0; object-fit: contain; }

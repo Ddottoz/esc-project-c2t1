@@ -122,7 +122,8 @@ async function getBand(id) {
             SELECT st.studentId AS id,
                    TRIM(CONCAT(st.firstName, ' ', COALESCE(st.lastName, ''))) AS name,
                    c.centreName AS centre,
-                   st.schoolLevel
+                   st.schoolLevel,
+                   ssb.movement
             FROM studentSemBand ssb
             INNER JOIN student st ON st.studentId = ssb.studentId
             LEFT JOIN centre c ON c.centreId = st.centreId
@@ -178,7 +179,12 @@ async function getBand(id) {
 
     band.educators = educatorRows[0];
     band.enrollments = enrollmentRows[0].map((student) => ({
+        // current DB uses student + semester as the enrollment identity
+        enrollmentId: `${band.id}:${student.id}`,
         studentId: String(student.id),
+        cohortId: band.id,
+        semesterId: band.semesterId,
+        movement: student.movement || 'Continue',
         student: {
             id: String(student.id),
             name: student.name,
@@ -207,6 +213,15 @@ async function getStudents() {
         centre: row.centre || '',
         schoolLevel: row.schoolLevel || ''
     }));
+}
+
+async function getStudentIdsEnrolledInSemester(semesterId) {
+    // used to hide students who already have a Band for this semester
+    const [rows] = await pool.query(
+        'SELECT DISTINCT studentId FROM studentSemBand WHERE semesterId = ?',
+        [semesterId]
+    );
+    return rows.map((row) => String(row.studentId));
 }
 
 async function bandExists(name, year, semester, excludeId = null) {
@@ -428,7 +443,7 @@ async function deleteBand(id) {
     }
 }
 
-async function addEnrollment(bandId, studentId) {
+async function addEnrollment(bandId, studentId, movement) {
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
@@ -442,8 +457,8 @@ async function addEnrollment(bandId, studentId) {
         }
         const {semesterId, band: code} = bands[0];
         await connection.query(
-            'INSERT INTO studentSemBand (semesterId, studentId, band) VALUES (?, ?, ?)',
-            [semesterId, studentId, code]
+            'INSERT INTO studentSemBand (semesterId, studentId, band, movement) VALUES (?, ?, ?, ?)',
+            [semesterId, studentId, code, movement]
         );
         await connection.query(`
             INSERT INTO studentAssessment (studentId, assessmentId, semesterId, score, status, dueDate)
@@ -506,7 +521,8 @@ async function removeEnrollment(bandId, studentId) {
 function getWeightedScore(assessments, submissions) {
     return assessments.reduce((total, assessment) => {
         const submission = submissions[assessment.id];
-        if (!submission || !Number.isFinite(submission.score)) return total;
+        // missing or ungraded scores count as 0
+        if (!submission || submission.status !== 'GRADED' || !Number.isFinite(submission.score)) return total;
         if (!Number.isFinite(assessment.maxPoints) || assessment.maxPoints <= 0) return total;
         if (!Number.isFinite(assessment.weight)) return total;
         return total + (submission.score / assessment.maxPoints) * assessment.weight;
@@ -545,7 +561,9 @@ function getStudentDashboard(band, studentId) {
     const weightedScore = getWeightedScore(band.assessments, enrollment.submissions);
     const earned = Math.round(weightedScore * 100) / 100;
     const required = 90;
+    // every assessment must be graded before the result can be PASS
     const meetsEachRubric = assessments.every((item) =>
+        item.submission.status === 'GRADED' &&
         Number.isFinite(item.submission.score) && item.submission.score >= item.passingPoints
     );
     return {
@@ -703,25 +721,19 @@ async function getPastBands(studentId, currentBand) {
         ORDER BY s.academicYear DESC, s.semesterNo DESC
     `, [studentId, currentBand.year * 2 + semesterNumber(currentBand.semester)]);
 
-    const pastBands = [];
-    for (const row of rows) {
-        const band = await getBand(row.semesterBandId);
-        const dashboard = band && getStudentDashboard(band, String(studentId));
-        pastBands.push({
-            studentId: String(studentId),
-            term: `${row.academicYear} ${semesterName(row.semesterNo)}`,
-            band: bandName(row.band),
-            bandId: row.semesterBandId,
-            status: dashboard && dashboard.passed ? 'PASS' : 'FAIL'
-        });
-    }
-    return pastBands;
+    return rows.map((row) => ({
+        studentId: String(studentId),
+        term: `${row.academicYear} ${semesterName(row.semesterNo)}`,
+        band: bandName(row.band),
+        bandId: row.semesterBandId
+    }));
 }
 
 module.exports = {
     getBands,
     getBand,
     getStudents,
+    getStudentIdsEnrolledInSemester,
     bandExists,
     getStudentEnrollmentForTerm,
     getEnrollmentConflictsForTerm,
@@ -735,3 +747,10 @@ module.exports = {
     getEligibleStudents,
     getPastBands
 };
+
+// same method names as the solution diagram, old names still work too
+module.exports.createBandCohort = createBand;
+module.exports.updateBandSettings = updateBand;
+module.exports.deleteBandCohort = deleteBand;
+module.exports.createEnrollment = addEnrollment;
+module.exports.deleteEnrollment = removeEnrollment;
