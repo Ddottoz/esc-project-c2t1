@@ -132,6 +132,9 @@ async function removeAssessment(req, res) {
             if (result.reason === 'ALREADY_PUBLISHED') {
                 return res.status(409).json({ message: 'Cannot delete: this assessment has published records' });
             }
+            return res.status(500).json({
+                message: 'Failed to delete assessment'
+            });
         }
         return res.status(200).json({ message: 'Assessment deleted successfully' });
     } catch (err) {
@@ -245,10 +248,10 @@ async function publish(req, res) {
 }
 
 async function renderBandAssessmentsPage(req, res) {
-    const semesterBandId= req.params.semesterBandId;
+    const semesterBandId = req.params.semesterBandId;
     const band = await BandModel.getBand(semesterBandId);
     if (!band) {
-        return res.status(404).render('error', {message: 'Band not found', error: {status: 404}});
+        return res.status(404).render('error', { message: 'Band not found', error: { status: 404 } });
     }
 
     res.render('assessmentsList', {
