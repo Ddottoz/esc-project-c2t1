@@ -190,6 +190,48 @@ button:hover, .button-link:hover {
     border-bottom: 1px solid #635F5F;
 }
 
+.student-table .sort-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+}
+
+.student-table .sort-button:hover {
+    background: none;
+}
+
+.student-table .sort-icon {
+    position: relative;
+    width: 10px;
+    height: 16px;
+    display: inline-block;
+}
+
+.student-table .sort-icon::before,
+.student-table .sort-icon::after {
+    content: '';
+    position: absolute;
+    left: 2px;
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+}
+
+.student-table .sort-icon::before {
+    top: 2px;
+    border-bottom: 5px solid #999999;
+}
+
+.student-table .sort-icon::after {
+    bottom: 2px;
+    border-top: 5px solid #999999;
+}
+
 .student-table td {
     padding: 12px 8px;
     font-size: 13px;
@@ -209,6 +251,7 @@ button:hover, .button-link:hover {
 /* Action Icons (Edit / Delete) */
 .row-actions {
     display: flex;
+    align-items: center;
     gap: 8px;
     justify-content: flex-end;
 }
@@ -221,12 +264,25 @@ button:hover, .button-link:hover {
     cursor: pointer;
 }
 
-.row-actions .edit-btn {
-    color: #635F5F;
+.row-action-icon {
+    display: block;
+    flex-shrink: 0;
 }
 
-.row-actions .delete-btn {
-    color: #C1272D;
+.edit-action-icon {
+    width: 24px;
+    height: 24px;
+    background-color: #635F5F;
+    -webkit-mask: url('/images/edit_icon.webp') center / contain no-repeat;
+    mask: url('/images/edit_icon.webp') center / contain no-repeat;
+}
+
+.delete-action-icon {
+    width: 17px;
+    height: 17px;
+    background-color: #C1272D;
+    -webkit-mask: url('/images/delete_icon.webp') center / contain no-repeat;
+    mask: url('/images/delete_icon.webp') center / contain no-repeat;
 }
 
 .empty-state {

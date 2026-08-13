@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="/stylesheets/assessmentList.css">
 </head>
 
-<body data-semester-id="<%= semesterId %>" data-semester-band-id="<%= semesterBandId %>" data-band="<%= band %>">
+<body data-semester-id="<%= semesterId %>" data-semester-band-id="<%= semesterBandId %>" data-band="<%= bandCode %>">
     <div class="app-shell">
 
         <!-- Top navbar -->
@@ -27,59 +27,51 @@
                 <!-- Main assessment content -->
                 <main class="content-page assessment-list-page">
 
-                    <div class="pageHeader">
+                    <div class="page-title-row assessment-title-row">
                         <h1 id="assessmentCountTitle">0 Assessments</h1>
 
-                        <button id="addAssessmentBtn" type="button">
-                            Create Assessment
+                        <button class="button secondary" id="addAssessmentBtn" type="button">
+                            + Create Assessment
                         </button>
                     </div>
 
-                    <div class="assessmentTableWrapper">
-                        <table>
+                    <div class="toolbar assessment-filter-toolbar">
+                        <div class="filters">
+                            <select class="filterInput" id="filterAssessmentType" name="assessmentType"
+                                aria-label="Filter by assessment type">
+                                <option value="">All Types</option>
+                                <option value="Letter Formation">Letter Formation</option>
+                                <option value="Narrative Writing">Narrative Writing</option>
+                                <option value="Exposition Writing">Exposition Writing</option>
+                                <option value="Edit and Diagram 1">Edit and Diagram 1</option>
+                                <option value="Edit and Diagram 2">Edit and Diagram 2</option>
+                                <option value="Edit and Diagram 3">Edit and Diagram 3</option>
+                                <option value="Comprehension">Comprehension</option>
+                                <option value="Primary">Primary</option>
+                                <option value="Secondary">Secondary</option>
+                                <option value="Picture Naming">Picture Naming</option>
+                                <option value="Picture Description">Picture Description</option>
+                                <option value="PA Identification">PA Identification</option>
+                                <option value="Phonics">Phonics</option>
+                                <option value="Word Reading Accuracy">Word Reading Accuracy</option>
+                                <option value="Fluency">Fluency</option>
+                                <option value="Word Spelling">Word Spelling</option>
+                            </select>
+
+                            <select class="filterInput" id="filterComponent" name="component"
+                                aria-label="Filter by component">
+                                <option value="">All Components</option>
+                                <option value="Vocabulary">Vocabulary</option>
+                                <option value="Writing">Writing</option>
+                                <option value="Comprehension">Comprehension</option>
+                                <option value="PA / Phonics">PA / Phonics</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-wrap assessmentTableWrapper">
+                        <table id="assessment-table">
                             <thead>
-
-                                <!-- Filter row -->
-                                <tr>
-                                    <th>
-                                        <select class="filterInput" id="filterAssessmentType" name="assessmentType"
-                                            aria-label="Filter by assessment type">
-                                            <option value="">All Types</option>
-                                            <option value="Letter Formation">Letter Formation</option>
-                                            <option value="Narrative Writing">Narrative Writing</option>
-                                            <option value="Exposition Writing">Exposition Writing</option>
-                                            <option value="Edit and Diagram 1">Edit and Diagram 1</option>
-                                            <option value="Edit and Diagram 2">Edit and Diagram 2</option>
-                                            <option value="Edit and Diagram 3">Edit and Diagram 3</option>
-                                            <option value="Comprehension">Comprehension</option>
-                                            <option value="Primary">Primary</option>
-                                            <option value="Secondary">Secondary</option>
-                                            <option value="Picture Naming">Picture Naming</option>
-                                            <option value="Picture Description">Picture Description</option>
-                                            <option value="PA Identification">PA Identification</option>
-                                            <option value="Phonics">Phonics</option>
-                                            <option value="Word Reading Accuracy">Word Reading Accuracy</option>
-                                            <option value="Fluency">Fluency</option>
-                                            <option value="Word Spelling">Word Spelling</option>
-                                        </select>
-                                    </th>
-
-                                    <th>
-                                        <select class="filterInput" id="filterComponent" name="component"
-                                            aria-label="Filter by component">
-                                            <option value="">All Components</option>
-                                            <option value="Vocabulary">Vocabulary</option>
-                                            <option value="Writing">Writing</option>
-                                            <option value="Comprehension">Comprehension</option>
-                                            <option value="PA / Phonics">PA / Phonics</option>
-                                        </select>
-                                    </th>
-
-                                    <!-- Remaining table columns -->
-                                    <th colspan="8"></th>
-                                </tr>
-
-                                <!-- Column headings -->
                                 <tr>
                                     <th>Assessment Type</th>
                                     <th>Component</th>
@@ -108,8 +100,7 @@
             <h2 id="modalTitle">Create Assessment</h2>
 
             <p id="editLockNotice" class="editLockNotice" style="display: none;">
-                This assessment was previously published. Only weightage and
-                rubrics can be changed.
+                This assessment was previously published. Only rubrics can be changed.
             </p>
 
             <form id="assessmentForm">
@@ -167,7 +158,8 @@
                     Weightage <span class="required-asterisk">*</span>
                 </label>
 
-                <input type="number" id="weight" min="0" max="999.9999" step="0.0001" required>
+                <!-- shown here for reference, only Band Settings can change it -->
+                <input type="number" id="weight" value="0" step="0.0001" disabled>
 
                 <label for="rubrics">
                     Rubrics

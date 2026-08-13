@@ -13,7 +13,7 @@
     class="submission-page"
   >
     <header class="top-navigation">
-      <a href="/" class="logo-link" aria-label="DAS home">
+      <a href="/bands" class="logo-link" aria-label="DAS home">
         <img src="/images/das-logo.jpg" alt="Dyslexia Association of Singapore logo" class="das-logo">
       </a>
 
@@ -22,7 +22,7 @@
         <a href="/students" class="navigation-item">Students</a>
       </nav>
 
-      <a href="<%= placeholderUrl %>" class="profile-button" aria-label="Open account">
+      <a href="/educator" class="profile-button" aria-label="Open account">
         <img src="/images/profile_icon.webp" alt="" class="profile-icon" aria-hidden="true">
       </a>
     </header>
@@ -41,13 +41,18 @@
         </section>
 
         <a
-          href="/assessments/semBand/<%= submissionPage.semester.semesterId %>/<%= encodeURIComponent(submissionPage.band) %>/assessments/view"
+          href="/assessments/<%= encodeURIComponent(submissionPage.semester.semesterBandId) %>/view"
           class="back-to-assessments"
         >&lt; Back to Assessments
         </a>
 
         <nav class="sidebar-navigation">
-          <a href="<%= placeholderUrl %>" class="sidebar-link" title="Answer Key">
+          <!-- answer keys are viewed through the assessment rubrics page -->
+          <a
+            href="/assessments/<%= encodeURIComponent(submissionPage.semester.semesterBandId) %>/view"
+            class="sidebar-link"
+            title="Answer Key"
+          >
             <span class="sidebar-icon">
               <img src="/images/answer_key.png" alt="" class="answer-key-sidebar-icon" aria-hidden="true">
             </span>
@@ -75,10 +80,30 @@
           <table class="submission-table">
             <thead>
               <tr>
-                <th>Student ID</th>
-                <th>Score</th>
-                <th>Status</th>
-                <th>Due Date</th>
+                <th aria-sort="none">
+                  <button type="button" class="submission-sort-button" data-sort-key="name" data-sort-type="text">
+                    Name
+                    <span class="submission-sort-icon" aria-hidden="true"></span>
+                  </button>
+                </th>
+                <th aria-sort="none">
+                  <button type="button" class="submission-sort-button" data-sort-key="score" data-sort-type="number">
+                    Score
+                    <span class="submission-sort-icon" aria-hidden="true"></span>
+                  </button>
+                </th>
+                <th aria-sort="none">
+                  <button type="button" class="submission-sort-button" data-sort-key="status" data-sort-type="text">
+                    Status
+                    <span class="submission-sort-icon" aria-hidden="true"></span>
+                  </button>
+                </th>
+                <th aria-sort="none">
+                  <button type="button" class="submission-sort-button" data-sort-key="date" data-sort-type="date">
+                    Due Date
+                    <span class="submission-sort-icon" aria-hidden="true"></span>
+                  </button>
+                </th>
                 <th aria-label="Upload"></th>
                 <th aria-label="Review"></th>
               </tr>
@@ -91,22 +116,35 @@
                 </tr>
               <% } %>
 
-              <% submissionPage.submissions.forEach(function(submission) { %>
-                <tr>
-                  <td><%= submission.studentId %></td>
-                  <td><%= submission.score %></td>
+              <% submissionPage.submissions.forEach(function(submission, index) { %>
+                <tr class="submission-row" data-original-index="<%= index %>">
+                  <td data-sort-name="<%= submission.studentName.toLocaleLowerCase('en-SG') %>">
+                    <a
+                      class="student-name-link"
+                      href="/bands/<%= encodeURIComponent(submissionPage.semester.semesterBandId) %>/students/<%= encodeURIComponent(submission.studentId) %>"
+                    ><%= submission.studentName %></a>
+                  </td>
+                  <td data-sort-score="<%= typeof submission.score === 'number' ? submission.score : '' %>"><%= submission.score %></td>
 
-                  <td>
+                  <td data-sort-status="<%= submission.status.toLocaleLowerCase('en-SG') %>">
                     <span class="status-label status-<%= submission.statusClass %>"><%= submission.status %></span>
                   </td>
 
-                  <td><%= submission.dueDate %></td>
+                  <td data-sort-date="<%= submission.dueDateSort %>"><%= submission.dueDate %></td>
 
                   <td>
-                    <a href="/upload/<%= submission.studentAssessmentId %>" class="table-action table-action-enabled">
-                      <img src="/images/upload.png" alt="" class="upload-action-icon" aria-hidden="true">
-                      <span>Upload</span>
-                    </a>
+                    <% if (submission.studentAssessmentId) { %>
+                      <a href="/upload/<%= submission.studentAssessmentId %>" class="table-action table-action-enabled">
+                        <img src="/images/upload.png" alt="" class="upload-action-icon" aria-hidden="true">
+                        <span>Upload</span>
+                      </a>
+                    <% } else { %>
+                      <!-- legacy enrollment is shown even if its assignment record is missing -->
+                      <span class="table-action table-action-disabled" aria-disabled="true" title="Assessment is not assigned yet">
+                        <img src="/images/upload.png" alt="" class="upload-action-icon" aria-hidden="true">
+                        <span>Upload</span>
+                      </span>
+                    <% } %>
                   </td>
 
                   <td>

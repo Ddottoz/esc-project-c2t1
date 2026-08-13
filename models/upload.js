@@ -77,10 +77,28 @@ async function setAssessmentAssigned(studentAssessmentId) {
 
     return result;
 }
+async function getAssessmentInfoFromId(studentAssessmentId){
+    const sql = `
+        select ss.studentId as studentId, ss.studentAssessmentId,
+            semester.academicYear as academicYear, semester.semesterNo as semNo, semester.semesterId as semId,
+            assessment.assessmentType as assessmentType, assessment.band as band
+            from studentAssessment as ss
+            left join semester on semester.semesterId=ss.semesterId
+            left join assessment on assessment.assessmentId=ss.assessmentId
+            where studentAssessmentId = ?;
+    `;
+
+    const [result] = await pool.query(sql, [
+        studentAssessmentId
+    ]);
+
+    return result[0];
+}
 
 module.exports = {
     createAssessmentSubmission,
     createDiagnosticSummary,
     getAllUploads,
-    setAssessmentAssigned
+    setAssessmentAssigned,
+    getAssessmentInfoFromId
 };

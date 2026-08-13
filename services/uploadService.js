@@ -40,8 +40,12 @@ async function getAllUploads(submissionId) {
     return uploadModel.getAllUploads(submissionId);
 
 }
+async function getAssessmentInfoFromId(studentAssessmentId){
+    return uploadModel.getAssessmentInfoFromId(studentAssessmentId);
+}
 
 module.exports = {
     createAssessmentSubmission,
-    getAllUploads
+    getAllUploads,
+    getAssessmentInfoFromId
 };

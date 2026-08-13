@@ -16,9 +16,9 @@
                 <a href="/bands">Bands</a>
                 <a class="active" href="students-list.html">Students</a>
             </nav>
-            <div class="profile-icon" aria-label="User profile">
+            <a class="profile-icon" href="/educator" aria-label="User profile">
                 <img src="./images/profile_icon.webp" alt="" aria-hidden="true">
-            </div>
+            </a>
         </header>
 
         <div class="page">
@@ -81,48 +81,7 @@
                 <h2 class="section-title">Contact Person(s) <span class="required">*</span></h2>
                 <div class="field-error" id="err-contactPersons"></div>
 
-                <div id="contactPersons">
-                    <!-- Template for JavaScript rendering dynamic contact cards -->
-                    <div class="contact-card-item">
-                        <div class="contact-card-header">
-                            <span class="card-subtitle">Contact Person</span>
-                            <button type="button" class="remove-btn">✕ Remove</button>
-                        </div>
-
-                        <div class="field-grid">
-                            <div>
-                                <label>Contact Person's Name</label>
-                                <input type="text" placeholder="e.g. John Tan">
-                            </div>
-
-                            <div>
-                                <label>Contact Person's Phone Number</label>
-                                <input type="tel" placeholder="e.g. +65 9123 4567">
-                            </div>
-
-                            <div>
-                                <label>Contact Person's Email</label>
-                                <input type="email" placeholder="e.g. email@example.com">
-                            </div>
-
-                            <div>
-                                <label>Relationship to Student</label>
-                                <select class="relationship-select">
-                                    <option value="">Select Relationship</option>
-                                    <option value="father">Father</option>
-                                    <option value="mother">Mother</option>
-                                    <option value="others">Others</option>
-                                </select>
-                                <input type="text" class="specify-input hidden" placeholder="Please specify">
-                            </div>
-                        </div>
-
-                        <div class="checkbox-row">
-                            <input type="radio" id="primaryContact1" name="primary_contact" checked>
-                            <label for="primaryContact1">Mark as primary contact</label>
-                        </div>
-                    </div>
-                </div>
+                <div id="contactPersons"></div>
 
                 <button type="button" class="btn-add-contact" id="addContactBtn">+ Add Contact Person</button>
 

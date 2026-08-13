@@ -46,7 +46,7 @@ button { cursor: pointer; }
 .sidebar { position: relative; min-height: calc(100vh - 78px); padding: 34px 24px; background-color: var(--light); transition: padding 0.2s ease; overflow: hidden; }
 .analysis-page.sidebar-collapsed .sidebar { padding: 34px 12px; }
 .sidebar-toggle { position: absolute; top: 14px; right: 14px; padding: 0; border: none; background-color: transparent; color: var(--gray); font-size: 26px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
-.toggle-arrow { color: var(--red); line-height: 1; }
+.toggle-arrow { color: var(--gray); line-height: 1; }
 .toggle-menu { line-height: 1; }
 .analysis-page.sidebar-collapsed .toggle-arrow { transform: rotate(180deg); }
 

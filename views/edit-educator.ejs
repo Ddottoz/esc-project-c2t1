@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edit Educator Information</title>
+    <link rel="stylesheet" href="/stylesheets/bands.css">
+    <link rel="stylesheet" href="/stylesheets/edit-educator.css">
+</head>
+<body>
+<div class="app-shell standalone">
+    <%- include('partials/top-nav', {activeTop: ''}) %>
+
+    <main class="educator-page">
+        <div class="page-heading">
+            <h1>Edit Educator Information</h1>
+            <a class="logout-link" href="/login/logout">Log out</a>
+        </div>
+
+        <% if (message) { %>
+            <p class="message"><%= message %></p>
+        <% } %>
+
+        <form action="/educator" method="POST">
+
+            <h2>Basic Educator Information</h2>
+
+            <div class="row">
+                <div class="field">
+                    <label for="firstName">First Name</label>
+                    <input type="text" id="firstName" name="firstName" value="<%= firstName %>" required>
+                </div>
+
+                <div class="field">
+                    <label for="lastName">Last Name</label>
+                    <input type="text" id="lastName" name="lastName" value="<%= lastName %>">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" value="<%= educator.email %>"
+                           placeholder="e.g. email@example.com" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" value="0000000000" disabled>
+                    <small class="hint">Saved passwords are encrypted and cannot be shown.</small>
+                </div>
+
+                <div class="field">
+                    <button type="button" class="grey-button" id="changePasswordBtn">Change Password</button>
+                </div>
+            </div>
+
+            <div id="passwordFields" class="hidden">
+                <div class="row">
+                    <div class="field">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" name="newPassword">
+                    </div>
+
+                    <div class="field">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword">
+                    </div>
+                </div>
+            </div>
+
+            <h2>DAS Programme Information</h2>
+
+            <% if (programmes.length === 0) { %>
+
+                <p class="hint">No programme information yet. Bands are assigned in Band Settings.</p>
+
+            <% } else { %>
+
+                <table>
+                    <tr>
+                        <th>Year</th>
+                        <th>Semester</th>
+                        <th>Band</th>
+                        <th>Role</th>
+                        <th>Centre</th>
+                    </tr>
+                    <% programmes.forEach(function (programme) { %>
+                        <tr>
+                            <td><%= programme.year %></td>
+                            <td>Semester <%= programme.semester %></td>
+                            <td><%= programme.band %></td>
+                            <td><%= programme.role %></td>
+                            <td><%= programme.centre %></td>
+                        </tr>
+                    <% }) %>
+                </table>
+
+            <% } %>
+
+            <button type="submit" class="save-button">Save Changes</button>
+
+        </form>
+    </main>
+</div>
+
+<script src="/javascripts/edit-educator.js"></script>
+</body>
+</html>

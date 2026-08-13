@@ -4,6 +4,7 @@ const {
     getSemAndBandBySemBandId, createAssessment, updateAssessment, getAssessmentById, getAllAssessmentsFiltered, publishAssessment,
     deleteAssessment, unpublishAssessment
 } = require('../models/assessment');
+const BandModel = require('../models/band');
 
 const validBands = ['A1', 'A2', 'A3', 'B4', 'B5', 'B6', 'C7', 'C8', 'C9'];
 const validComponents = ['Vocabulary', 'Writing', 'Comprehension', 'PA / Phonics'];
@@ -19,17 +20,10 @@ function isInteger(value) {
     return Number.isInteger(Number(value)) && value !== '' && value !== null;
 }
 
-function isValidWeight(value) {
-    if (value === null || value === '' || isNaN(Number(value))) return false;
-    const num = Number(value);
-    if (num < 0 || num > 999.9999) return false;
-    return /^\d{1,3}(\.\d{1,4})?$/.test(String(value));
-}
-
 function validateAssessmentBody(body) {
-    const { assessmentType, component, band, passingMark, totalMark, weight } = body;
+    const { assessmentType, component, band, passingMark, totalMark } = body;
 
-    if (!assessmentType || !component || !band || passingMark === '' || passingMark == null || totalMark === '' || totalMark == null || weight === '' || weight == null) {
+    if (!assessmentType || !component || !band || passingMark === '' || passingMark == null || totalMark === '' || totalMark == null) {
         return 'All fields are required';
     }
     if (!validAssessmentTypes.includes(assessmentType)) {
@@ -56,9 +50,6 @@ function validateAssessmentBody(body) {
     if (Number(passingMark) > Number(totalMark)) {
         return 'Passing Mark cannot exceed Total Mark';
     }
-    if (!isValidWeight(weight)) {
-        return 'weight must be a valid decimal number with up to 4 decimal places and value between 0 and 999.9999';
-    }
     return null;
 }
 
@@ -68,12 +59,11 @@ async function addAssessment(req, res) {
         const error = validateAssessmentBody(req.body);
         if (error) return res.status(400).json({ message: error });
 
-        const { assessmentType, component, band, passingMark, totalMark, rubrics, semesterId, weight } = req.body;
+        const { assessmentType, component, band, passingMark, totalMark, rubrics, semesterId } = req.body;
 
         const result = await createAssessment(
             { assessmentType, component, band: band.toUpperCase(), passingMark, totalMark, rubrics },
-            semesterId,
-            weight
+            semesterId
         );
 
         if (!result.success) {
@@ -83,7 +73,7 @@ async function addAssessment(req, res) {
             if (result.reason === 'SEMESTER_BAND_NOT_FOUND') {
                 return res.status(404).json({ message: 'No matching band found for this semester' });
             }
-            return res.status(500).json({ message: 'Failed to assign weight to assessment' });
+            return res.status(500).json({ message: 'Failed to create assessment' });
         }
 
         return res.status(201).json({ message: 'Assessment created successfully', assessmentId: result.assessmentId });
@@ -100,13 +90,12 @@ async function editAssessment(req, res) {
         const error = validateAssessmentBody(req.body);
         if (error) return res.status(400).json({ message: error });
 
-        const { assessmentType, component, band, passingMark, totalMark, weight, rubrics, semesterId } = req.body;
+        const { assessmentType, component, band, passingMark, totalMark, rubrics, semesterId } = req.body;
 
         const result = await updateAssessment(
             assessmentId,
             { assessmentType, component, band: band.toUpperCase(), passingMark, totalMark, rubrics },
-            semesterId,
-            weight
+            semesterId
         );
 
         if (!result.success) {
@@ -115,7 +104,7 @@ async function editAssessment(req, res) {
                 return res.status(409).json({ message: 'Cannot edit: this assessment has already been published for this semester' });
             }
             if (result.reason === 'LOCKED_FIELDS') {
-                return res.status(409).json({ message: 'This assessment has been published before: only weight and rubrics can be changed' });
+                return res.status(409).json({ message: 'This assessment has been published before: only rubrics can be changed' });
             }
             if (result.reason === 'DUPLICATE_ASSESSMENT_TYPE') {
                 return res.status(409).json({ message: 'Assessment type already exists for this band' });
@@ -257,9 +246,17 @@ async function publish(req, res) {
 
 async function renderBandAssessmentsPage(req, res) {
     const semesterBandId= req.params.semesterBandId;
-    const {semesterId, band} = await getSemAndBandBySemBandId(semesterBandId);
+    const band = await BandModel.getBand(semesterBandId);
+    if (!band) {
+        return res.status(404).render('error', {message: 'Band not found', error: {status: 404}});
+    }
 
-    res.render('assessmentsList', {semesterId, band, semesterBandId});
+    res.render('assessmentsList', {
+        semesterId: band.semesterId,
+        band,
+        bandCode: band.bandCode,
+        semesterBandId
+    });
 }
 
 module.exports = { addAssessment, editAssessment, removeAssessment, getAssessment, getAssessments, publish, renderBandAssessmentsPage, unpublish, validateAssessmentBody };

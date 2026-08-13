@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const studentPicker = document.getElementById('student-picker');
+    const studentMovement = document.getElementById('student-movement');
     const studentSearch = document.getElementById('student-modal-search');
     const movementFilter = document.getElementById('student-movement-filter');
     function filterAvailableStudents() {
@@ -84,6 +85,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('student-filter-empty').hidden = visible !== 0;
     }
     movementFilter?.addEventListener('change', filterAvailableStudents);
+    studentPicker?.addEventListener('change', () => {
+        // send the movement shown beside the selected student
+        if (studentMovement) {
+            studentMovement.value = studentPicker.selectedOptions[0]?.dataset.movement || '';
+        }
+    });
     document.getElementById('student-search-button')?.addEventListener('click', filterAvailableStudents);
     studentSearch?.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') { event.preventDefault(); filterAvailableStudents(); }

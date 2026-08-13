@@ -15,9 +15,9 @@
                 <a href="/bands">Bands</a>
                 <a class="active" href="students-list.html">Students</a>
             </nav>
-            <div class="profile-icon" aria-label="User profile">
+            <a class="profile-icon" href="/educator" aria-label="User profile">
                 <img src="./images/profile_icon.webp" alt="" aria-hidden="true">
-            </div>
+            </a>
         </header>
 
         <div class="page">
@@ -39,22 +39,22 @@
             <div class="action-row">
                 <button class="secondary" id="downloadBtn">&#8681; Download Student List</button>
                 <a href="add-edit-student.html" class="button-link">+ Add Student</a>
-                <input type="text" id="searchBox" placeholder="Search">
+                <input type="text" id="searchBox" placeholder="Search Student Name">
             </div>
 
             <table class="student-table">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Band</th>
-                        <th>Centre</th>
-                        <th>Educator</th>
-                        <th>NRIC</th>
-                        <th>School Level</th>
-                        <th>School</th>
-                        <th>Age</th>
-                        <th>Enrollment Date</th>
-                        <th>Graduated</th>
+                        <th><button class="sort-button" data-sort="name" data-type="text">Name <span class="sort-icon" aria-hidden="true"></span></button></th>
+                        <th><button class="sort-button" data-sort="band" data-type="text">Band <span class="sort-icon" aria-hidden="true"></span></button></th>
+                        <th><button class="sort-button" data-sort="centre" data-type="text">Centre <span class="sort-icon" aria-hidden="true"></span></button></th>
+                        <th><button class="sort-button" data-sort="educator" data-type="text">Educator <span class="sort-icon" aria-hidden="true"></span></button></th>
+                        <th><button class="sort-button" data-sort="nric" data-type="text">NRIC <span class="sort-icon" aria-hidden="true"></span></button></th>
+                        <th><button class="sort-button" data-sort="schoolLevel" data-type="text">School Level <span class="sort-icon" aria-hidden="true"></span></button></th>
+                        <th><button class="sort-button" data-sort="school" data-type="text">School <span class="sort-icon" aria-hidden="true"></span></button></th>
+                        <th><button class="sort-button" data-sort="age" data-type="number">Age <span class="sort-icon" aria-hidden="true"></span></button></th>
+                        <th><button class="sort-button" data-sort="enrollmentDate" data-type="date">Enrollment Date <span class="sort-icon" aria-hidden="true"></span></button></th>
+                        <th><button class="sort-button" data-sort="graduated" data-type="number">Graduated <span class="sort-icon" aria-hidden="true"></span></button></th>
                         <th></th>
                     </tr>
                 </thead>

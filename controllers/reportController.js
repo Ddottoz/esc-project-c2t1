@@ -38,7 +38,8 @@ const getStudentReport = async (req, res) => {
         // Ensure student object is guaranteed to have 'id' property for views/partials/sidebar.ejs
         const normalizedStudent = {
             ...student,
-            id: student.id || student.studentId || studentId
+            id: student.id || student.studentId || studentId,
+            name: student.name || student.studentName || `${student.firstName || ''} ${student.lastName || ''}`.trim()
         };
 
         // Group assessments by semester and component
@@ -87,7 +88,7 @@ const getStudentReport = async (req, res) => {
             type: 'student',
             activeSide: 'progress',
             band: {
-                id: normalizedStudent.currentBand || normalizedStudent.band || 'N/A',
+                id: normalizedStudent.semesterBandId,
                 name: normalizedStudent.currentBand || normalizedStudent.band || 'N/A'
             },
 

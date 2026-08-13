@@ -103,17 +103,22 @@ function renderTable(assessments) {
     tbody.innerHTML = '';
 
     if (assessments.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4">No assessments found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10">No assessments found</td></tr>';
         return;
     }
 
     assessments.forEach(a => {
         const row = document.createElement('tr');
+        const submissionUrl = `/submission/${encodeURIComponent(semesterId)}/${encodeURIComponent(band)}/${encodeURIComponent(String(a.assessmentType).replace(/ /g, '_'))}`;
 
         // Publish / Unpublish cell
         let publishCell;
         if (!a.isPublished) {
-            publishCell = `<button class="publishBtn" data-id="${a.assessmentId}">Publish</button>`;
+            publishCell = `
+                <button class="publishBtn" data-id="${a.assessmentId}" type="button">
+                    <span>Publish</span>
+                </button>
+            `;
         } else if (Number(a.totalSubmitted) === 0) {
             // published this semester, but nothing submitted/graded yet -> allow unpublish
             publishCell = `
@@ -138,7 +143,7 @@ function renderTable(assessments) {
             ?  '-'
             : `<svg width="24" height="24" class="viewRubricsBtn" data-id="${a.assessmentId}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path fill="#635f5f" d="M320 96C239.2 96 174.5 132.8 127.4 176.6C80.6 220.1 49.3 272 34.4 307.7C31.1 315.6 31.1 324.4 34.4 332.3C49.3 368 80.6 420 127.4 463.4C174.5 507.1 239.2 544 320 544C400.8 544 465.5 507.2 512.6 463.4C559.4 419.9 590.7 368 605.6 332.3C608.9 324.4 608.9 315.6 605.6 307.7C590.7 272 559.4 220 512.6 176.6C465.5 132.9 400.8 96 320 96zM176 320C176 240.5 240.5 176 320 176C399.5 176 464 240.5 464 320C464 399.5 399.5 464 320 464C240.5 464 176 399.5 176 320zM320 256C320 291.3 291.3 320 256 320C244.5 320 233.7 317 224.3 311.6C223.3 322.5 224.2 333.7 227.2 344.8C240.9 396 293.6 426.4 344.8 412.7C396 399 426.4 346.3 412.7 295.1C400.5 249.4 357.2 220.3 311.6 224.3C316.9 233.6 320 244.4 320 256z"/></svg>`
         row.innerHTML = `
-            <td>${a.assessmentType}</td>
+            <td><a href="${submissionUrl}">${a.assessmentType}</a></td>
             <td>${a.component}</td>
             <td>${a.totalSubmitted} / ${a.totalAssigned}</td>
             <td>${a.totalGraded} / ${a.totalAssigned}</td>
@@ -198,12 +203,13 @@ function openEditModal(assessmentId, assessments) {
     document.getElementById('component').value = assessment.component;
     document.getElementById('passingMark').value = assessment.passingMark;
     document.getElementById('totalMark').value = assessment.totalMark;
-    document.getElementById('weight').value = assessment.weight;
+    // shown for reference only, weightage is edited in Band Settings
+    document.getElementById('weight').value = assessment.weight ?? 0;
     document.getElementById('rubrics').value = assessment.rubrics;
     document.getElementById('modalTitle').textContent = 'Edit Assessment';
 
     // Lock core fields if this assessment has ever been published, anywhere.
-    // Only weight + rubrics stay editable.
+    // only rubrics stay editable after the assessment has been published
     const lockedFieldIds = ['assessmentType', 'component', 'passingMark', 'totalMark'];
     lockedFieldIds.forEach(id => {
         document.getElementById(id).disabled = !!assessment.isPublishedAnywhere;
@@ -276,7 +282,6 @@ document.getElementById('assessmentForm').addEventListener('submit', async (e) =
         component: document.getElementById('component').value,
         passingMark: Number(document.getElementById('passingMark').value),
         totalMark: Number(document.getElementById('totalMark').value),
-        weight: Number(document.getElementById('weight').value),
         rubrics: document.getElementById('rubrics').value,
         semesterId: Number(semesterId),
         band: band // from the EJS-injected variable at the top

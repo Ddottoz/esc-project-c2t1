@@ -3,17 +3,23 @@ const pool = require("../models/db");
 async function findBySemesterBandAndAssessmentType(semesterId, band, assessmentType) {
   const [semesterRows] =
     await pool.execute(
-      `SELECT
-         semesterId,
-         academicYear,
-         semesterNo
+       `SELECT
+         semester.semesterId,
+         semester.academicYear,
+         semester.semesterNo,
+         semesterBand.semesterBandId
 
        FROM semester
 
-       WHERE semesterId = ?
+       LEFT JOIN semesterBand
+         ON semesterBand.semesterId = semester.semesterId
+        AND semesterBand.band = ?
+
+       WHERE semester.semesterId = ?
 
        LIMIT 1`,
       [
+        band,
         semesterId
       ]
     );
@@ -23,10 +29,20 @@ async function findBySemesterBandAndAssessmentType(semesterId, band, assessmentT
     await pool.execute(
       `SELECT
          student_assessment.studentAssessmentId,
-         student_assessment.studentId,
+         enrollment.studentId,
+         TRIM(CONCAT(
+           COALESCE(student.firstName, ''),
+           ' ',
+           COALESCE(student.lastName, '')
+         )) AS studentName,
          student_assessment.score,
          student_assessment.status,
          assessment.assessmentType,
+
+         DATE_FORMAT(
+           student_assessment.dueDate,
+           '%Y-%m-%d'
+         ) AS dueDateSort,
 
          DATE_FORMAT(
            student_assessment.dueDate,
@@ -40,30 +56,35 @@ async function findBySemesterBandAndAssessmentType(semesterId, band, assessmentT
            ELSE 1
          END AS hasAnalysis
 
-       FROM studentAssessment
-            student_assessment
+       FROM studentSemBand enrollment
+
+       INNER JOIN student
+         ON student.studentId = enrollment.studentId
 
        INNER JOIN assessment
-         ON assessment.assessmentId =
-            student_assessment.assessmentId
+         ON LOWER(assessment.band) = LOWER(enrollment.band)
+        AND LOWER(assessment.assessmentType) = LOWER(?)
+
+       LEFT JOIN studentAssessment student_assessment
+         ON student_assessment.studentId = enrollment.studentId
+        AND student_assessment.semesterId = enrollment.semesterId
+        AND student_assessment.assessmentId = assessment.assessmentId
 
        LEFT JOIN assessment_analysis
          ON assessment_analysis.submissionId =
             student_assessment.studentAssessmentId
 
-       WHERE student_assessment.semesterId = ?
-         AND LOWER(assessment.band) =
-             LOWER(?)
-         AND LOWER(assessment.assessmentType) =
+       WHERE enrollment.semesterId = ?
+         AND LOWER(enrollment.band) =
              LOWER(?)
 
        ORDER BY
-         student_assessment.studentId,
+         enrollment.studentId,
          student_assessment.studentAssessmentId`,
       [
+        assessmentType,
         semesterId,
-        band,
-        assessmentType
+        band
       ]
     );
 
@@ -87,6 +108,11 @@ async function findBySemesterBandAndAssessmentType(semesterId, band, assessmentT
     semesterNo:
       valueOrNA(
         semesterRow.semesterNo
+      ),
+
+    semesterBandId:
+      valueOrNA(
+        semesterRow.semesterBandId
       )
   };
 
@@ -99,11 +125,18 @@ async function findBySemesterBandAndAssessmentType(semesterId, band, assessmentT
 
         return {
           studentAssessmentId:
-            row.studentAssessmentId,
+            hasValue(row.studentAssessmentId)
+              ? row.studentAssessmentId
+              : null,
 
           studentId:
             valueOrNA(
               row.studentId
+            ),
+
+          studentName:
+            valueOrNA(
+              row.studentName
             ),
 
           score:
@@ -122,6 +155,11 @@ async function findBySemesterBandAndAssessmentType(semesterId, band, assessmentT
             valueOrNA(
               row.dueDate
             ),
+
+          dueDateSort:
+            hasValue(row.dueDateSort)
+              ? row.dueDateSort
+              : "",
 
           hasAnalysis:
             Boolean(
@@ -171,6 +209,22 @@ function normaliseStatus(status) {
     return {
       value: "Assigned",
       className: "assigned"
+    };
+  }
+
+
+  if (cleanStatus === "submitted" || cleanStatus === "analysing") {
+    return {
+      value: "Submitted",
+      className: "submitted"
+    };
+  }
+
+
+  if (cleanStatus === "missing" || cleanStatus === "") {
+    return {
+      value: "Missing",
+      className: "missing"
     };
   }
 
