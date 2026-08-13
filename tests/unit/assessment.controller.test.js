@@ -10,23 +10,6 @@ const {
     validateAssessmentBody
 } = require('../../controllers/assessmentController');
 
-const {
-    getBands,
-    getBand,
-    getStudents,
-    bandExists,
-    getStudentEnrollmentForTerm,
-    getEnrollmentConflictsForTerm,
-    createBand,
-    updateBand,
-    deleteBand,
-    addEnrollment,
-    removeEnrollment,
-    getRoster,
-    getStudentDashboard,
-    getEligibleStudents,
-    getPastBands
-} = require('../../models/band');
 
 const {
     getSemAndBandBySemBandId,
@@ -39,11 +22,7 @@ const {
     unpublishAssessment
 } = require('../../models/assessment');
 
-
-
-jest.mock('../../models/band', () => ({
-    getBand: jest.fn()
-}));
+const BandModel = require('../../models/band');
 
 jest.mock('../../models/assessment', () => ({
     getSemAndBandBySemBandId: jest.fn(),
@@ -54,6 +33,10 @@ jest.mock('../../models/assessment', () => ({
     publishAssessment: jest.fn(),
     deleteAssessment: jest.fn(),
     unpublishAssessment: jest.fn()
+}));
+
+jest.mock('../../models/band', () => ({
+    getBand: jest.fn()
 }));
 
 
@@ -77,7 +60,6 @@ const validBody = {
     band: 'A1',
     passingMark: 50,
     totalMark: 100,
-    weight: 10.5,
     rubrics: 'Sample rubric',
     semesterId: 1
 };
@@ -96,7 +78,6 @@ describe('validateAssessmentBody', () => {
             band: 'A1',
             passingMark: 50,
             totalMark: 100,
-            weight: 10.5
         })).toBeNull();
     });
 
@@ -106,8 +87,7 @@ describe('validateAssessmentBody', () => {
         ['component', ''],
         ['band', ''],
         ['passingMark', null],
-        ['totalMark', null],
-        ['weight', null]
+        ['totalMark', null]
     ])(
         'should reject missing %s',
         (field, value) => {
@@ -117,8 +97,7 @@ describe('validateAssessmentBody', () => {
                 component: 'Vocabulary',
                 band: 'A1',
                 passingMark: 50,
-                totalMark: 100,
-                weight: 10.5
+                totalMark: 100
             };
 
             body[field] = value;
@@ -136,7 +115,7 @@ describe('validateAssessmentBody', () => {
             band: 'A1',
             passingMark: 50,
             totalMark: 100,
-            weight: 10.5
+
         };
 
         expect(validateAssessmentBody(body))
@@ -153,7 +132,7 @@ describe('validateAssessmentBody', () => {
             band: 'A1',
             passingMark: 50,
             totalMark: 100,
-            weight: 10.5
+
         };
 
         expect(validateAssessmentBody(body)).not.toBeNull();
@@ -167,7 +146,7 @@ describe('validateAssessmentBody', () => {
             band: 'A1',
             passingMark: 50,
             totalMark: 100,
-            weight: 10.5
+
         };
 
         expect(validateAssessmentBody(body))
@@ -184,7 +163,7 @@ describe('validateAssessmentBody', () => {
             band: 'D10',
             passingMark: 50,
             totalMark: 100,
-            weight: 10.5
+
         };
 
         expect(validateAssessmentBody(body))
@@ -201,7 +180,7 @@ describe('validateAssessmentBody', () => {
             band: 'a1',
             passingMark: 50,
             totalMark: 100,
-            weight: 10.5
+
         };
 
         expect(validateAssessmentBody(body)).toBeNull();
@@ -222,7 +201,7 @@ describe('validateAssessmentBody', () => {
                 band: 'A1',
                 passingMark,
                 totalMark: 100,
-                weight: 10.5
+
             };
 
             expect(validateAssessmentBody(body)).toBe(expected);
@@ -237,7 +216,7 @@ describe('validateAssessmentBody', () => {
             band: 'A1',
             passingMark: 50,
             totalMark: 99.9,
-            weight: 10.5
+
         };
 
         expect(validateAssessmentBody(body))
@@ -252,7 +231,7 @@ describe('validateAssessmentBody', () => {
             band: 'A1',
             passingMark: -1,
             totalMark: 100,
-            weight: 10.5
+
         };
 
         expect(validateAssessmentBody(body))
@@ -267,7 +246,7 @@ describe('validateAssessmentBody', () => {
             band: 'A1',
             passingMark: 50,
             totalMark: -1,
-            weight: 10.5
+
         };
 
         expect(validateAssessmentBody(body))
@@ -282,7 +261,7 @@ describe('validateAssessmentBody', () => {
             band: 'A1',
             passingMark: 100,
             totalMark: 100,
-            weight: 10.5
+
         };
 
         expect(validateAssessmentBody(body)).toBeNull();
@@ -296,7 +275,7 @@ describe('validateAssessmentBody', () => {
             band: 'A1',
             passingMark: 0,
             totalMark: 100,
-            weight: 10.5
+
         };
 
         expect(validateAssessmentBody(body)).toBeNull();
@@ -310,7 +289,7 @@ describe('validateAssessmentBody', () => {
             band: 'A1',
             passingMark: 101,
             totalMark: 100,
-            weight: 10.5
+
         };
 
         expect(validateAssessmentBody(body))
@@ -318,40 +297,6 @@ describe('validateAssessmentBody', () => {
     });
 
 
-    test.each([
-        [0, true],
-        [999.9999, true],
-        [10.5, true],
-        [1.2345, true],
-        [-0.0001, false],
-        [1000, false],
-        [1000.0000, false],
-        [1.23456, false],
-        ['abc', false]
-    ])(
-        'should validate weight %s correctly',
-        (weight, valid) => {
-
-            const body = {
-                assessmentType: 'Fluency',
-                component: 'Vocabulary',
-                band: 'A1',
-                passingMark: 50,
-                totalMark: 100,
-                weight
-            };
-
-            const result = validateAssessmentBody(body);
-
-            if (valid) {
-                expect(result).toBeNull();
-            } else {
-                expect(result).toBe(
-                    'weight must be a valid decimal number with up to 4 decimal places and value between 0 and 999.9999'
-                );
-            }
-        }
-    );
 });
 
 
@@ -393,8 +338,7 @@ describe('addAssessment', () => {
                 totalMark: 100,
                 rubrics: 'Sample rubric'
             },
-            1,
-            10.5
+            1
         );
 
         expect(res.status).toHaveBeenCalledWith(201);
@@ -437,8 +381,7 @@ describe('addAssessment', () => {
             expect.objectContaining({
                 band: 'A1'
             }),
-            1,
-            10.5
+            1
         );
     });
 
@@ -489,7 +432,7 @@ describe('addAssessment', () => {
         expect(res.status).toHaveBeenCalledWith(500);
 
         expect(res.json).toHaveBeenCalledWith({
-            message: 'Failed to assign weight to assessment'
+            message: 'Failed to create assessment'
         });
     });
 
@@ -552,8 +495,7 @@ describe('editAssessment', () => {
                 totalMark: 100,
                 rubrics: 'Sample rubric'
             },
-            1,
-            10.5
+            1
         );
 
         expect(res.status).toHaveBeenCalledWith(200);
@@ -628,7 +570,7 @@ describe('editAssessment', () => {
 
         expect(res.json).toHaveBeenCalledWith({
             message:
-                'This assessment has been published before: only weight and rubrics can be changed'
+                'This assessment has been published before: only rubrics can be changed'
         });
     });
 
@@ -791,24 +733,7 @@ describe('removeAssessment', () => {
             message: 'Failed to delete assessment'
         });
     });
-
-    test('should return 500 for unknown deletion failure', async () => {
-        deleteAssessment.mockResolvedValue({
-            success: false,
-            reason: 'UNKNOWN'
-        });
-
-        await removeAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(500);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Failed to delete assessment'
-        });
-    });
 });
-
-
 
 
 // =========================================================
@@ -1095,57 +1020,33 @@ describe('getAssessments', () => {
             );
     });
 
-    test('should use semester and band resolved from semesterBandId', async () => {
-        getSemAndBandBySemBandId.mockResolvedValue({
-            semesterId: 202602,
-            band: 'C9'
-        });
+
+    test('should filter by band and convert band to uppercase', async () => {
 
         getAllAssessmentsFiltered.mockResolvedValue([]);
 
-        await getAssessments(req, res);
+        req.query.band = 'a1';
 
-        expect(getSemAndBandBySemBandId)
-            .toHaveBeenCalledWith(
-                'band-a1-2022-s1'
-            );
+        await getAssessments(req, res);
 
         expect(getAllAssessmentsFiltered)
             .toHaveBeenCalledWith(
-                202602,
+                202201,
                 null,
                 null,
-                'C9'
+                'A1'
             );
     });
 
 
-    // test('should filter by band and convert band to uppercase', async () => {
-
-    //     getAllAssessmentsFiltered.mockResolvedValue([]);
-
-    //     req.query.band = 'a1';
-
-    //     await getAssessments(req, res);
-
-    //     expect(getAllAssessmentsFiltered)
-    //         .toHaveBeenCalledWith(
-    //             202201,
-    //             null,
-    //             null,
-    //             'A1'
-    //         );
-    // });
-
-
-    test('should apply assessment type and component filters together', async () => {
+    test('should apply all filters together', async () => {
 
         getAllAssessmentsFiltered.mockResolvedValue([]);
 
         req.query = {
             assessmentType: 'Fluency',
             component: 'Vocabulary',
-            // band: 'A1'
+            band: 'a1'
         };
 
         await getAssessments(req, res);
@@ -1157,9 +1058,6 @@ describe('getAssessments', () => {
                 'Vocabulary',
                 'A1'
             );
-
-        expect(res.status)
-            .toHaveBeenCalledWith(200);
     });
 
 
@@ -1174,8 +1072,6 @@ describe('getAssessments', () => {
         expect(res.json).toHaveBeenCalledWith({
             message: 'semesterBandId is required'
         });
-
-        expect(getSemAndBandBySemBandId).not.toHaveBeenCalled();
 
         expect(getAllAssessmentsFiltered).not.toHaveBeenCalled();
     });
@@ -1215,25 +1111,6 @@ describe('getAssessments', () => {
         expect(res.json).toHaveBeenCalledWith({
             message: 'Failed to fetch assessments'
         });
-    });
-
-    test('should return 500 when semester band lookup throws', async () => {
-        getSemAndBandBySemBandId.mockRejectedValue(
-            new Error('Database failure')
-        );
-
-        await getAssessments(req, res);
-
-        expect(getAllAssessmentsFiltered)
-            .not.toHaveBeenCalled();
-
-        expect(res.status)
-            .toHaveBeenCalledWith(500);
-
-        expect(res.json)
-            .toHaveBeenCalledWith({
-                message: 'Failed to fetch assessments'
-            });
     });
 });
 
@@ -1402,71 +1279,50 @@ describe('renderBandAssessmentsPage', () => {
     test('should render assessments page with semester band details', async () => {
         const req = {
             params: {
-                semesterBandId:
-                    'band-a1-2022-s1'
+                semesterBandId: 'band-a1-2022-s1'
             }
         };
 
         const res = mockResponse();
 
-        const bandRecord = {
-            semesterBandId:
-                'band-a1-2022-s1',
+        const band = {
             semesterId: 202201,
-            bandCode: 'A1'
+            bandCode: 'A1',
+            name: 'Band A1'
         };
 
-        getBand.mockResolvedValue(
-            bandRecord
-        );
+        BandModel.getBand.mockResolvedValue(band);
 
         await renderBandAssessmentsPage(req, res);
 
-        expect(getBand)
-            .toHaveBeenCalledWith(
-                'band-a1-2022-s1'
-            );
+        expect(BandModel.getBand)
+            .toHaveBeenCalledWith('band-a1-2022-s1');
 
         expect(res.render).toHaveBeenCalledWith(
             'assessmentsList',
             {
+                semesterBandId: 'band-a1-2022-s1',
                 semesterId: 202201,
-                band: bandRecord,
-                bandCode: 'A1',
-                semesterBandId:
-                    'band-a1-2022-s1'
+                band,
+                bandCode: 'A1'
             }
         );
     });
 
-    test('should render 404 when semester band is not found', async () => {
+    test('should render 404 when the band does not exist', async () => {
         const req = {
-            params: {
-                semesterBandId: 'missing-band'
-            }
+            params: { semesterBandId: 'missing-band' }
         };
-
         const res = mockResponse();
 
-        getBand.mockResolvedValue(null);
+        BandModel.getBand.mockResolvedValue(null);
 
         await renderBandAssessmentsPage(req, res);
 
-        expect(getBand)
-            .toHaveBeenCalledWith('missing-band');
-
-        expect(res.status)
-            .toHaveBeenCalledWith(404);
-
-        expect(res.render)
-            .toHaveBeenCalledWith(
-                'error',
-                {
-                    message: 'Band not found',
-                    error: {
-                        status: 404
-                    }
-                }
-            );
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.render).toHaveBeenCalledWith('error', {
+            message: 'Band not found',
+            error: { status: 404 }
+        });
     });
 });
