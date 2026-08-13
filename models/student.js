@@ -223,7 +223,7 @@ async function generateReport(studentId, startSem, endSem) {
     const student = studentRows[0];
 
     if (!student) {
-        throw new Error(`Student with ID ${studentId} not found`);
+        return null;
     }
 
     const [semRows] = await pool.query(
