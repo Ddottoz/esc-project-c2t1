@@ -127,6 +127,10 @@ describe('9.2.1 Integration Test: Edit Student Profile & Contacts Successfully (
         expect(contacts.length).toBe(1);
         expect(contacts[0].contactName).toBe('Ben Tan');
         expect(Boolean(contacts[0].isPrimary)).toBe(true);
+
+        const [semBand] = await pool.query('SELECT * FROM studentSemBand WHERE studentId = ? AND semesterId = ?', [studentId, validSemesterId]);
+        expect(semBand.length).toBe(1);
+        expect(semBand[0].band).toBe('A2');
     });
 
     test('returns 404 and makes no changes when the studentId does not exist', async () => {
@@ -140,13 +144,13 @@ describe('9.2.1 Integration Test: Edit Student Profile & Contacts Successfully (
     });
 });
 
-describe('9.2.2 Integration Test: Invalid INput Details or Contact Rules', () => {
+describe('9.2.2 Integration Test: Invalid Input Details or Contact Rules', () => {
     test('rejects a submission with a missing required field and makes no changes to the database', async () => {
         const studentId = await insertBaselineStudent();
         const payload = buildValidUpdatePayload();
         delete payload.centreId;
 
-        const res = await request(app).put(`/students/{studentId}`).send(payload);
+        const res = await request(app).put(`/students/${studentId}`).send(payload);
         expect(res.status).toBe(400);
 
         // confirm the original band is untouched not overwritten
@@ -168,5 +172,41 @@ describe('9.2.2 Integration Test: Invalid INput Details or Contact Rules', () =>
         const [contacts] = await pool.query('SELECT * FROM contactPerson WHERE studentId = ?', [studentId]);
         expect(contacts.length).toBe(1);
         expect(contacts[0].contactName).toBe('Lim Lee Hui');
+    });
+});
+
+describe('9.2.3 Integration Test: Edit Student with 2 Contact Persons', () => {
+    test('replaces 1 existing contact with 2 new ones, exactly 1 marked primary', async () => {
+        const studentId = await insertBaselineStudent();
+        const payload = {
+            ...buildValidUpdatePayload(),
+            contactPersons: [
+                {contactName: 'Ben Tan', phoneNumber: '+65 8256 9583', email: 'bentan@test.com', relationship: 'Father', isPrimary: true},
+                {contactName: 'Evy Tan', phoneNumber: '+65 9259 8112', email: 'evytan@test.com', relationship: 'Sibling', isPrimary: false}
+            ]
+        };
+
+        const res = await request(app).put(`/students/${studentId}`).send(payload);
+        expect(res.status).toBe(200);
+
+        const [contacts] = await pool.query('SELECT * FROM contactPerson WHERE studentId = ?', [studentId]);
+        expect(contacts.length).toBe(2);
+        expect(contacts.filter((c) => Boolean(c.isPrimary)).length).toBe(1);
+    });
+});
+
+describe('9.2.4 Integration Test: NRIC Immutability on Update', () => {
+    test('does not change the NRIC even if included in the update payload', async () => {
+        const studentId = await insertBaselineStudent();
+        const [before] = await pool.query('SELECT nric FROM student WHERE studentId = ?', [studentId]);
+        const originalNric = before[0].nric;
+
+        const payload = {...buildValidUpdatePayload(), nric: 'S1111111Z'};
+        const res = await request(app).put(`/students/${studentId}`).send(payload);
+
+        expect(res.status).toBe(200);
+
+        const [after] = await pool.query('SELECT nric FROM student WHERE studentId = ?', [studentId]);
+        expect(after[0].nric).toBe(originalNric);   // unchanged despite being in the payload
     });
 });

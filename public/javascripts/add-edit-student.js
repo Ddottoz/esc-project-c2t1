@@ -13,6 +13,16 @@ const RELATIONSHIP_OPTIONS = [
 ];
 const MAX_CONTACTS = 2;
 
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 // Builds relationship dropdown for 1 contact card (includes free-text field for 'Other')
 function buildRelationshipField(rowId, existingRelationship) {
     const isStandard = RELATIONSHIP_OPTIONS.slice(0, -1).includes(existingRelationship);
@@ -78,24 +88,24 @@ function addContactCard(data = {}) {
     card.className = 'contact-card-item';
     card.dataset.rowId = rowId;
     card.innerHTML = `
-        <div class="contact-card-header">
-            <span class="card-subtitle">Contact Person</span>
-            <button type="button" class="remove-btn remove-contact-btn">✕ Remove</button>
-        </div>
+    <div class="contact-card-header">
+        <span class="card-subtitle">Contact Person</span>
+        <button type="button" class="remove-btn remove-contact-btn">✕ Remove</button>
+    </div>
 
-        <div class="field-grid">
-            <div>
-                <label>Contact Person's Name</label>
-                <input type="text" class="contact-name" placeholder="e.g. John Tan" required value="${data.contactName || ''}">
-            </div>
-            <div>
-                <label>Contact Person's Phone Number</label>
-                <input type="tel" class="contact-phone" placeholder="e.g. +65 9123 4567" required value="${data.phoneNumber || ''}">
-            </div>
-            <div>
-                <label>Contact Person's Email</label>
-                <input type="email" class="contact-email" placeholder="e.g. email@example.com" required value="${data.email || ''}">
-            </div>
+    <div class="field-grid">
+        <div>
+            <label>Contact Person's Name</label>
+            <input type="text" class="contact-name" placeholder="e.g. John Tan" required value="${escapeHtml(data.contactName || '')}">
+        </div>
+        <div>
+            <label>Contact Person's Phone Number</label>
+            <input type="tel" class="contact-phone" placeholder="e.g. +65 9123 4567" required value="${escapeHtml(data.phoneNumber || '')}">
+        </div>
+        <div>
+            <label>Contact Person's Email</label>
+            <input type="email" class="contact-email" placeholder="e.g. email@example.com" required value="${escapeHtml(data.email || '')}">
+        </div>
 
             <div class="relationship-field"></div>
         </div>
@@ -399,6 +409,9 @@ if (typeof module !== 'undefined' && module.exports) {
         validateForm,
         formToStudentObject,
         collectContactPersons,
+        updateContactCardUI,
+        addContactCard,
+        escapeHtml,
         calculateAge: typeof calculateAge !== 'undefined' ? calculateAge : undefined
     };
 } else {

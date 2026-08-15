@@ -304,6 +304,10 @@ input.invalid, select.invalid, textarea.invalid {
     cursor: pointer;
 }
 
+.hidden {
+    display: none !important;
+}
+
 /* ==========================================
    BUTTONS
    ========================================== */

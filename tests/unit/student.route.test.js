@@ -36,8 +36,107 @@ const validPayload = {
     }] 
 };
 
+const validPayload2 = {
+    firstName: 'Ben',
+    lastName: 'Lim',
+    nric: 'T0123456A',
+    dateOfBirth: '2013-11-20',
+    centreId: 2,
+    schoolId: 3,
+    educatorId: 2,
+    schLevel: 'Primary 6',
+    currentBand: 'B2',
+    semesterId: 202402,
+    contactPersons: [
+        {
+            contactName: 'David Lim',
+            phoneNumber: '+65 9182 3456',
+            email: 'davidlim@test.com',
+            relationship: 'Father',
+            isPrimary: true
+        },
+        {
+            contactName: 'Susan Lim',
+            phoneNumber: '+65 8123 7890',
+            email: 'susanlim@test.com',
+            relationship: 'Mother',
+            isPrimary: false
+        }
+    ]
+};
+
 afterEach(() => {
     jest.clearAllMocks();
+});
+
+// Get Student By ID Unit Test Cases
+describe('GET /students/:studentId', () => {
+    test('returns 400 when studentId is not a valid number (negative case)', async () => {
+        const res = await request(app).get('/students/abc');
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toMatch(/invalid student id/i);
+        expect(StudentModel.getStudentById).not.toHaveBeenCalled();
+    });
+
+    test('returns 404 when the student does not exist (negative case)', async () => {
+        StudentModel.getStudentById.mockResolvedValue(null);
+
+        const res = await request(app).get('/students/9999');
+
+        expect(StudentModel.getStudentById).toHaveBeenCalledWith(9999);
+        expect(res.status).toBe(404);
+        expect(res.body.error).toMatch(/student not found/i);
+    });
+
+    test('returns 200 and the student object on success', async () => {
+        const payload = {...validPayload};
+        StudentModel.getStudentById.mockResolvedValue(payload);
+
+        const res = await request(app).get('/students/5791');
+
+        expect(StudentModel.getStudentById).toHaveBeenCalledWith(5791);
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual(payload);
+    });
+
+    test('returns 500 when the model throws an unexpected error', async () => {
+        StudentModel.getStudentById.mockRejectedValue(new Error('DB connection lost'));
+        const res = await request(app).get('/students/5791');
+        expect(res.status).toBe(500);
+    });
+});
+
+// Get ALL Students Route Unit Test Cases
+describe('GET /students', () => {
+    test('returns 200 and an empty array when no students exist (boundary)', async () => {
+        StudentModel.getAllStudents.mockResolvedValue([]);
+
+        const res = await request(app).get('/students');
+
+        expect(StudentModel.getAllStudents).toHaveBeenCalled();
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual([]);
+    });
+
+    test('returns 200 and the full list of students on success', async () => {
+        const payload = [
+            {...validPayload}, {...validPayload2}
+        ];
+        StudentModel.getAllStudents.mockResolvedValue(payload);
+
+        const res = await request(app).get('/students');
+
+        expect(StudentModel.getAllStudents).toHaveBeenCalled();
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual(payload);
+    });
+
+    test('returns 500 when the model throws an unexpected error', async () => {
+        StudentModel.getAllStudents.mockRejectedValue(new Error('DB connection lost'));
+        const res = await request(app).get('/students');
+        expect(res.status).toBe(500);
+    });
 });
 
 // Add Student Route Unit Test Cases
@@ -156,8 +255,15 @@ describe('POST /students - NRIC uniqueness & creation', () => {
         expect(StudentModel.addStudent).toHaveBeenCalledWith(validPayload);
         expect(res.status).toBe(201);
         expect(res.body).toEqual({studentId: 5791});
-    })
-})
+    });
+
+    test('returns 500 when the model throws an unexpected error', async () => {
+        StudentModel.nricExists.mockResolvedValue(false);
+        StudentModel.addStudent.mockRejectedValue(new Error('DB connection lost'));
+        const res = await request(app).post('/students').send(validPayload);
+        expect(res.status).toBe(500);
+    });
+});
 
 // Edit Student Route Unit Test Cases
 const validUpdatePayload = {
@@ -273,6 +379,17 @@ describe('PUT /students/:studentId - contact person validation', () => {
 });
 
 describe('PUT /students/:studentId - update outcome', () => {
+    test('strips nric from payload on update even if included (immutable field)', async () => {
+        StudentModel.updateStudent.mockResolvedValue(true);
+        const payload = {...validUpdatePayload, nric: 'S1111111Z'};
+
+        const res = await request(app).put('/students/5791').send(payload);
+
+        // nric MUST NOT be passed through to the model
+        expect(StudentModel.updateStudent).toHaveBeenCalledWith(5791, validUpdatePayload);
+        expect(res.status).toBe(200);
+    });
+
     test('returns 404 when the student does not exist', async () => {
         StudentModel.updateStudent.mockResolvedValue(false);
 
@@ -291,5 +408,47 @@ describe('PUT /students/:studentId - update outcome', () => {
         expect(StudentModel.updateStudent).toHaveBeenCalledWith(5791, validUpdatePayload);
         expect(res.status).toBe(200);
         expect(res.body).toEqual({studentId: 5791});
+    });
+
+    test('returns 500 when the model throws an unexpected error', async () => {
+        StudentModel.updateStudent.mockRejectedValue(new Error('DB connection lost'));
+        const res = await request(app).put('/students/5791').send(validUpdatePayload);
+        expect(res.status).toBe(500);
+    });
+});
+
+// Delete Student Route Unit Test Cases
+describe('DELETE /students/:studentId', () => {
+    test('returns 400 when studentId is not a valid number (negative case)', async () => {
+        const res = await request(app).delete('/students/abc');
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toMatch(/invalid student id/i);
+        expect(StudentModel.deleteStudent).not.toHaveBeenCalled();
+    });
+
+    test('returns 404 when the student does not exist (negative case)', async () => {
+        StudentModel.deleteStudent.mockResolvedValue(false);
+
+        const res = await request(app).delete('/students/9999');
+
+        expect(StudentModel.deleteStudent).toHaveBeenCalledWith(9999);
+        expect(res.status).toBe(404);
+        expect(res.body.error).toMatch(/student not found/i);
+    });
+
+    test('returns 200 on successful deletion', async () => {
+        StudentModel.deleteStudent.mockResolvedValue(true);
+
+        const res = await request(app).delete('/students/5791');
+
+        expect(StudentModel.deleteStudent).toHaveBeenCalledWith(5791);
+        expect(res.status).toBe(200);
+    });
+
+    test('returns 500 when the model throws an unexpected error', async () => {
+        StudentModel.deleteStudent.mockRejectedValue(new Error('DB connection lost'));
+        const res = await request(app).delete('/students/5791');
+        expect(res.status).toBe(500);
     });
 });

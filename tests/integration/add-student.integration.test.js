@@ -119,6 +119,11 @@ describe('4.2.1 Integration Test: Add Student Successfully (Success Flow)', () =
         expect(contacts.length).toBe(1);
         expect(contacts[0].contactName).toBe('Lim Lee Hui');
         expect(Boolean(contacts[0].isPrimary)).toBe(true);
+
+        const [semBand] = await pool.query('SELECT * FROM studentSemBand WHERE studentId = ?', [rows[0].studentId]);
+        expect(semBand.length).toBe(1);
+        expect(semBand[0].band).toBe('A1');
+        expect(semBand[0].semesterId).toBe(validSemesterId);
     });
 });
 
@@ -166,5 +171,41 @@ describe('4.2.3 Integration Test: Duplicate NRIC', () => {
         // confirm still only 1 row exists for this NRIC, not 2
         const [rows] = await pool.query('SELECT * FROM student WHERE nric = ?', [nric]);
         expect(rows.length).toBe(1);
+    });
+});
+
+describe('4.2.4 Integration Test: Add Student with 2 Contact Persons', () => {
+    test('persists both contact person records when 2 are submitted', async () => {
+        const nric = makeTestNric();
+        const payload = {
+            ...buildValidPayload(nric),
+            contactPersons: [
+                {contactName: 'Lim Lee Hui', phoneNumber: '+65 8121 9216', email: 'leehui@test.com', relationship: 'Mother', isPrimary: true},
+                {contactName: 'Ben Tan', phoneNumber: '+65 8256 9583', email: 'bentan@test.com', relationship: 'Father', isPrimary: false}
+            ]
+        };
+
+        const res = await request(app).post('/students').send(payload);
+        expect(res.status).toBe(201);
+        insertedStudentIds.push(res.body.studentId);
+
+        const [contacts] = await pool.query('SELECT * FROM contactPerson WHERE studentId = ?', [res.body.studentId]);
+        expect(contacts.length).toBe(2);
+        expect(contacts.filter((c) => Boolean(c.isPrimary)).length).toBe(1);
+    });
+});
+
+describe('4.2.5 Integration Test: Transaction Rollback on Partial Failure', () => {
+    test('rolls back the entire insert if a downstream constraint fails, leaving no orphaned student row', async () => {
+        const nric = makeTestNric();
+        const payload = {...buildValidPayload(nric), centreId: 999999}; // non-existent FK
+
+        const res = await request(app).post('/students').send(payload);
+
+        expect(res.status).toBe(500); // FK constraint violation surfaces as a DB error
+
+        // the critical assertion: confirm NO student row was left behind despite the failure
+        const [rows] = await pool.query('SELECT * FROM student WHERE nric = ?', [nric]);
+        expect(rows.length).toBe(0);
     });
 });
