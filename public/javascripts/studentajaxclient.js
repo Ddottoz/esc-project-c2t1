@@ -28,7 +28,8 @@ async function getStudentsByEducator(educatorId) {
 // retrieves single student by id (returns null if not found)
 async function getStudent(studentId) {
     const res = await fetch(`/api/students/${studentId}`);
-    if (!res.ok) return null;
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(await parseErrorMessage(res, 'Failed to fetch student.'));
     return res.json();
 }
 
@@ -106,4 +107,21 @@ async function getBands() {
     const res = await fetch(`/api/bands`);
     if (!res.ok) return [];
     return res.json();
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        getAllStudents,
+        getStudentsByEducator,
+        getStudent,
+        addStudent,
+        updateStudent,
+        deleteStudent,
+        getStudentProgress,
+        getSchools,
+        getCentres,
+        getEducators,
+        getSemesters,
+        getBands
+    };
 }

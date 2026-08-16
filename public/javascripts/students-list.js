@@ -253,6 +253,9 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         getFilteredStudents, 
         populateFilterOptions,
+        handleDelete, 
+        renderRows,
+        escapeHtml,
         __setAllStudentsForTest: (students) => {allStudents = students}};
 } else {
     init();

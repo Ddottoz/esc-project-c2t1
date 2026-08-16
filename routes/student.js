@@ -84,7 +84,8 @@ router.put('/:studentId', async (req, res) => {
         return res.status(400).json({error: 'Invalid student ID provided.'});
     }
 
-    const {centreId, educatorId, currentBand, semesterId, contactPersons} = req.body;
+    const {nric, ...updateData} = req.body  // strip nric out
+    const {centreId, educatorId, currentBand, semesterId, contactPersons} = updateData;
 
     if (!centreId || !educatorId || !currentBand || !semesterId) {
         return res.status(400).json({error: 'Centre, educator, band and semester are required.'});
@@ -94,7 +95,7 @@ router.put('/:studentId', async (req, res) => {
     if (contactError) return res.status(400).json({error: contactError});
 
     try {
-        const updated = await StudentModel.updateStudent(studentId, req.body);
+        const updated = await StudentModel.updateStudent(studentId, updateData);
         if (!updated) return res.status(404).json({error: 'Student not found'});
         res.json({studentId});
     } catch(err) {
