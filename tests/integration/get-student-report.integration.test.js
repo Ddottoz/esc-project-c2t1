@@ -1,5 +1,5 @@
 const request = require('supertest');
-const cheerio = require('cheerio'); // 1. Import cheerio
+const cheerio = require('cheerio'); // Import cheerio
 const app = require('../../app'); // Path to your Express app instance
 
 describe('UC7: Generate Progress Report - getStudentReport Integration Tests', () => {
@@ -28,8 +28,6 @@ describe('UC7: Generate Progress Report - getStudentReport Integration Tests', (
         // Parse HTML with cheerio
         const $ = cheerio.load(res.text);
 
-        // Get text specifically inside the performance table
-        // (This avoids matching '2025 Sem 2' inside the dropdown <option> elements)
         const tableText = $('table').text();
 
         expect(tableText).toContain('2025 Sem 1');
