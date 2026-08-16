@@ -47,6 +47,12 @@ function validateAssessmentBody(body) {
     if (Number(totalMark) < 0) {
         return 'totalMark cannot be negative';
     }
+    if (Number(passingMark) > 100) {
+        return 'passingMark cannot exceed 100';
+    }
+    if (Number(totalMark) > 100) {
+        return 'totalMark cannot exceed 100';
+    }
     if (Number(passingMark) > Number(totalMark)) {
         return 'Passing Mark cannot exceed Total Mark';
     }
@@ -72,6 +78,9 @@ async function addAssessment(req, res) {
             }
             if (result.reason === 'SEMESTER_BAND_NOT_FOUND') {
                 return res.status(404).json({ message: 'No matching band found for this semester' });
+            }
+            if (result.reason === 'WEIGHT_CREATION_FAILED') {
+                return res.status(500).json({ message: 'Failed to assign weight to assessment' });
             }
             return res.status(500).json({ message: 'Failed to create assessment' });
         }

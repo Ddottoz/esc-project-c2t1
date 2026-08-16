@@ -50,14 +50,14 @@ async function loadAssessments() {
 // Opens the modal and fills in the read-only assessment info
 function openPublishModal(assessmentId, assessments) {
     const assessment = assessments.find(a => a.assessmentId == assessmentId);
-
+    document.getElementById('publishForm').reset();
     document.getElementById('publishAssessmentId').value = assessment.assessmentId;
     document.getElementById('publishAssessmentType').textContent = assessment.assessmentType;
     document.getElementById('publishComponent').textContent = assessment.component;
     document.getElementById('publishBand').textContent = assessment.band;
     document.getElementById('publishMarks').textContent = `${assessment.passingMark} / ${assessment.totalMark}`;
 
-    document.getElementById('publishForm').reset();
+    // document.getElementById('publishForm').reset();
     document.getElementById('publishModal').style.display = 'flex';
 }
 
