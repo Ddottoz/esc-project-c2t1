@@ -249,37 +249,6 @@ async function getStudentEnrollmentForTerm(studentId, year, semester, excludeBan
     return rows.length ? mapBandRow(rows[0]) : null;
 }
 
-async function getEnrollmentConflictsForTerm(bandId, year, semester) {
-    const [rows] = await pool.query(`
-        SELECT currentEnrollment.studentId, otherBand.semesterBandId AS bandId,
-               otherEnrollment.band, targetSemester.academicYear AS year,
-               targetSemester.semesterNo
-        FROM semesterBand currentBand
-        INNER JOIN studentSemBand currentEnrollment
-            ON currentEnrollment.semesterId = currentBand.semesterId
-            AND currentEnrollment.band = currentBand.band
-        INNER JOIN semester targetSemester
-            ON targetSemester.academicYear = ? AND targetSemester.semesterNo = ?
-        INNER JOIN studentSemBand otherEnrollment
-            ON otherEnrollment.studentId = currentEnrollment.studentId
-            AND otherEnrollment.semesterId = targetSemester.semesterId
-        INNER JOIN semesterBand otherBand
-            ON otherBand.semesterId = otherEnrollment.semesterId
-            AND otherBand.band = otherEnrollment.band
-        WHERE currentBand.semesterBandId = ?
-          AND otherBand.semesterBandId <> currentBand.semesterBandId
-    `, [Number(year), semesterNumber(semester), bandId]);
-    return rows.map((row) => ({
-        studentId: String(row.studentId),
-        band: {
-            id: row.bandId,
-            name: bandName(row.band),
-            year: Number(row.year),
-            semester: semesterName(row.semesterNo)
-        }
-    }));
-}
-
 async function ensureSemester(connection, year, semester) {
     const number = semesterNumber(semester);
     const semesterId = Number(year) * 100 + number;
@@ -736,7 +705,6 @@ module.exports = {
     getStudentIdsEnrolledInSemester,
     bandExists,
     getStudentEnrollmentForTerm,
-    getEnrollmentConflictsForTerm,
     createBand,
     updateBand,
     deleteBand,

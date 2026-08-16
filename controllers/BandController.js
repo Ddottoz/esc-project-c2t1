@@ -9,6 +9,8 @@ const YEARS = Object.freeze([2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 203
 const SEMESTERS = Object.freeze(['Semester 1', 'Semester 2']);
 const CENTRES = Object.freeze(['Centre 1', 'Centre 2']);
 const EDUCATOR_ROLES = Object.freeze(['Lead Educator', 'Supporting Educator']);
+const WEIGHT_TOTAL = 100;
+const WEIGHT_TOTAL_TOLERANCE = 0.0001;
 
 class ValidationError extends Error {
     constructor(message, code = 'VALIDATION_ERROR') {
@@ -60,23 +62,11 @@ class BandController {
             );
         }
 
-        const conflicts = await this.model.getEnrollmentConflictsForTerm(
-            cohortId,
-            draft.year,
-            draft.semester
-        );
-        if (conflicts.length) {
-            throw new ValidationError(
-                `${conflicts.length} enrolled student(s) already belong to another Band for ${draft.year} ${draft.semester}.`,
-                'ENROLLMENT_TERM_CONFLICT'
-            );
-        }
-
         const updated = await this.model.updateBandSettings(cohortId, draft);
         if (!updated) {
             throw new ValidationError(
-                'The Band could not be updated because its term conflicts with another enrollment.',
-                'SETTINGS_CONFLICT'
+                'The Band settings could not be updated.',
+                'SETTINGS_UPDATE_FAILED'
             );
         }
         return updated;
@@ -84,11 +74,19 @@ class BandController {
 
     validateWeightageTotal(weights, assessments) {
         if (!assessments.length) return true;
-        const values = assessments.map((assessment) => Number(weights[assessment.id]));
+        const values = assessments.map((assessment) => {
+            try {
+                return Number(weights[assessment.id]);
+            } catch {
+                return NaN;
+            }
+        });
         const total = values.reduce((sum, weight) => sum + weight, 0);
-        // every weight must be valid and the final total must be exactly 100%
+        const roundingAllowance = Number.EPSILON * Math.max(1, Math.abs(total), WEIGHT_TOTAL);
+        // The tolerance boundary is inclusive. roundingAllowance prevents an exact
+        // decimal boundary such as 100.0001 being rejected by binary rounding noise.
         if (values.some((weight) => !Number.isFinite(weight) || weight < 0 || weight > 100) ||
-            Math.abs(total - 100) > 0.0001) {
+            Math.abs(total - WEIGHT_TOTAL) > WEIGHT_TOTAL_TOLERANCE + roundingAllowance) {
             throw new ValidationError(
                 'Assessment weightages must each be between 0% and 100% and add up to exactly 100%.',
                 'INVALID_WEIGHTAGE_TOTAL'
