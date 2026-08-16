@@ -5,9 +5,7 @@ const {
     TEST_MARKER,
     cleanupAssessment,
     sweepMarkedAssessments,
-    getAnySemesterBand,
-    findUnusedAssessmentType,
-    insertTestAssessment
+    findUnusedAssessmentType
 } = require('./assessmentTestHelpers');
 
 let validSemesterId;
@@ -16,28 +14,10 @@ let validBand;
 
 const insertedAssessmentIds = [];
 
-/*
- * These values must match the valid assessment values accepted by
- * validateAssessmentBody().
- */
-const validAssessmentTypes = [
-    'Letter Formation',
-    'Narrative Writing',
-    'Exposition Writing',
-    'Edit and Diagram 1',
-    'Edit and Diagram 2',
-    'Edit and Diagram 3',
-    'Comprehension',
-    'Primary',
-    'Secondary',
-    'Picture Naming',
-    'Picture Description',
-    'PA Identification',
-    'Phonics',
-    'Word Reading Accuracy',
-    'Fluency',
-    'Word Spelling'
-];
+function track(assessmentId) {
+    insertedAssessmentIds.push(assessmentId);
+    return assessmentId;
+}
 
 async function buildValidPayload(overrides = {}) {
     const assessmentType =
@@ -55,13 +35,6 @@ async function buildValidPayload(overrides = {}) {
         band: validBand,
         passingMark: 50,
         totalMark: 100,
-
-        /*
-         * Weight is initialized to zero because actual weightage is
-         * managed by the separate Band Settings implementation.
-         */
-        weight: 0,
-
         rubrics: TEST_MARKER,
         semesterId: validSemesterId,
         ...overrides
@@ -69,10 +42,6 @@ async function buildValidPayload(overrides = {}) {
 }
 
 beforeAll(async () => {
-    /*
-     * Choose a real semester-band foreign-key record instead of
-     * assuming a particular fixture exists.
-     */
     const [[semesterBand]] = await pool.query(
         `SELECT semesterBandId, semesterId, band
          FROM semesterBand
@@ -115,10 +84,16 @@ describe(
     '8.2.1 Integration Test: Create Assessment Successfully',
     () => {
         test(
-            'creates an assessment and initializes its weight to zero',
+            'creates an assessment and initializes weight to zero',
             async () => {
                 const payload =
                     await buildValidPayload();
+
+                /*
+                 * Weight must not be submitted by the
+                 * Create Assessment operation.
+                 */
+                expect(payload).not.toHaveProperty('weight');
 
                 const res = await request(app)
                     .post('/assessments')
@@ -132,16 +107,17 @@ describe(
                     assessmentId: expect.any(Number)
                 });
 
-                insertedAssessmentIds.push(
-                    res.body.assessmentId
-                );
+                track(res.body.assessmentId);
 
-                /*
-                 * Verify the assessment was actually persisted.
-                 */
                 const [assessmentRows] =
                     await pool.query(
-                        `SELECT *
+                        `SELECT assessmentId,
+                                assessmentType,
+                                component,
+                                band,
+                                passingMark,
+                                totalMark,
+                                rubrics
                          FROM assessment
                          WHERE assessmentId = ?`,
                         [res.body.assessmentId]
@@ -149,40 +125,31 @@ describe(
 
                 expect(assessmentRows).toHaveLength(1);
 
-                expect(
-                    assessmentRows[0].assessmentType
-                ).toBe(payload.assessmentType);
+                const created = assessmentRows[0];
 
-                expect(
-                    assessmentRows[0].component
-                ).toBe('Vocabulary');
+                expect(created.assessmentType)
+                    .toBe(payload.assessmentType);
 
-                expect(
-                    assessmentRows[0].band
-                ).toBe(validBand);
+                expect(created.component)
+                    .toBe('Vocabulary');
 
-                expect(
-                    Number(
-                        assessmentRows[0].passingMark
-                    )
-                ).toBe(50);
+                expect(created.band)
+                    .toBe(validBand);
 
-                expect(
-                    Number(
-                        assessmentRows[0].totalMark
-                    )
-                ).toBe(100);
+                expect(Number(created.passingMark))
+                    .toBe(50);
 
-                expect(
-                    assessmentRows[0].rubrics
-                ).toBe(TEST_MARKER);
+                expect(Number(created.totalMark))
+                    .toBe(100);
 
-                /*
-                 * Verify the connected weight row was created.
-                 */
+                expect(created.rubrics)
+                    .toBe(TEST_MARKER);
+
                 const [weightRows] =
                     await pool.query(
-                        `SELECT *
+                        `SELECT semesterBandId,
+                                assessmentId,
+                                weight
                          FROM semesterBandAssessmentWeight
                          WHERE semesterBandId = ?
                            AND assessmentId = ?`,
@@ -195,23 +162,34 @@ describe(
                 expect(weightRows).toHaveLength(1);
 
                 expect(
-                    Number(weightRows[0].weight)
-                ).toBe(0);
+                    weightRows[0].semesterBandId
+                ).toBe(validSemesterBandId);
+
+                expect(
+                    Number(weightRows[0].assessmentId)
+                ).toBe(res.body.assessmentId);
+
+                /*
+                 * New assessments always begin with
+                 * weight zero.
+                 */
+                expect(Number(weightRows[0].weight))
+                    .toBe(0);
             }
         );
     }
 );
 
 describe(
-    '8.2.2 Integration Test: Invalid Assessment Details',
+    '8.2.2 Integration Test: Reject Invalid Assessment Details',
     () => {
         test(
             'rejects passingMark greater than totalMark and creates no rows',
             async () => {
                 const payload =
                     await buildValidPayload({
-                        passingMark: 101,
-                        totalMark: 100
+                        passingMark: 100,
+                        totalMark: 99
                     });
 
                 const res = await request(app)
@@ -229,21 +207,48 @@ describe(
                     await pool.query(
                         `SELECT COUNT(*) AS assessmentCount
                          FROM assessment
-                         WHERE rubrics = ?`,
-                        [TEST_MARKER]
+                         WHERE assessmentType = ?
+                           AND band = ?
+                           AND rubrics = ?`,
+                        [
+                            payload.assessmentType,
+                            payload.band,
+                            TEST_MARKER
+                        ]
                     );
 
-                expect(
-                    Number(assessmentCount)
-                ).toBe(0);
+                expect(Number(assessmentCount))
+                    .toBe(0);
+
+                const [[{ weightCount }]] =
+                    await pool.query(
+                        `SELECT COUNT(*) AS weightCount
+                         FROM semesterBandAssessmentWeight sbaw
+                         JOIN assessment a
+                           ON a.assessmentId =
+                              sbaw.assessmentId
+                         WHERE a.assessmentType = ?
+                           AND a.band = ?
+                           AND a.rubrics = ?`,
+                        [
+                            payload.assessmentType,
+                            payload.band,
+                            TEST_MARKER
+                        ]
+                    );
+
+                expect(Number(weightCount)).toBe(0);
             }
         );
 
         test(
-            'rejects missing assessment type and creates no rows',
+            'rejects missing assessmentType and creates no rows',
             async () => {
                 const payload =
                     await buildValidPayload();
+
+                const originalType =
+                    payload.assessmentType;
 
                 delete payload.assessmentType;
 
@@ -261,23 +266,28 @@ describe(
                     await pool.query(
                         `SELECT COUNT(*) AS assessmentCount
                          FROM assessment
-                         WHERE rubrics = ?`,
-                        [TEST_MARKER]
+                         WHERE assessmentType = ?
+                           AND band = ?
+                           AND rubrics = ?`,
+                        [
+                            originalType,
+                            validBand,
+                            TEST_MARKER
+                        ]
                     );
 
-                expect(
-                    Number(assessmentCount)
-                ).toBe(0);
+                expect(Number(assessmentCount))
+                    .toBe(0);
             }
         );
     }
 );
 
 describe(
-    '8.2.3 Integration Test: Duplicate Assessment Type',
+    '8.2.3 Integration Test: Reject Duplicate Assessment Type',
     () => {
         test(
-            'rejects a second assessment using the same type and band',
+            'creates exactly one assessment and rejects the duplicate',
             async () => {
                 const payload =
                     await buildValidPayload();
@@ -288,9 +298,7 @@ describe(
 
                 expect(firstRes.status).toBe(201);
 
-                insertedAssessmentIds.push(
-                    firstRes.body.assessmentId
-                );
+                track(firstRes.body.assessmentId);
 
                 const secondRes = await request(app)
                     .post('/assessments')
@@ -303,9 +311,9 @@ describe(
                         'Assessment type already exists for this band'
                 });
 
-                const [[{ assessmentCount }]] =
+                const [assessmentRows] =
                     await pool.query(
-                        `SELECT COUNT(*) AS assessmentCount
+                        `SELECT assessmentId
                          FROM assessment
                          WHERE assessmentType = ?
                            AND band = ?`,
@@ -315,23 +323,57 @@ describe(
                         ]
                     );
 
+                expect(assessmentRows).toHaveLength(1);
+
                 expect(
-                    Number(assessmentCount)
-                ).toBe(1);
+                    Number(assessmentRows[0].assessmentId)
+                ).toBe(firstRes.body.assessmentId);
+
+                /*
+                 * The rejected second request must not
+                 * create another weight record.
+                 */
+                const [[{ weightCount }]] =
+                    await pool.query(
+                        `SELECT COUNT(*) AS weightCount
+                         FROM semesterBandAssessmentWeight
+                         WHERE assessmentId = ?`,
+                        [firstRes.body.assessmentId]
+                    );
+
+                expect(Number(weightCount)).toBe(1);
             }
         );
     }
 );
 
 describe(
-    '8.2.4 Integration Test: Semester Band Not Found',
+    '8.2.4 Integration Test: Semester Band Does Not Exist',
     () => {
         test(
-            'rolls back the assessment insert when no semester band exists',
+            'rolls back assessment insert when semester-band combination does not exist',
             async () => {
+                const nonexistentSemesterId =
+                    999999999;
+
+                const [[{ matchCount }]] =
+                    await pool.query(
+                        `SELECT COUNT(*) AS matchCount
+                         FROM semesterBand
+                         WHERE semesterId = ?
+                           AND band = ?`,
+                        [
+                            nonexistentSemesterId,
+                            validBand
+                        ]
+                    );
+
+                expect(Number(matchCount)).toBe(0);
+
                 const payload =
                     await buildValidPayload({
-                        semesterId: 999999999
+                        semesterId:
+                            nonexistentSemesterId
                     });
 
                 const res = await request(app)
@@ -346,9 +388,9 @@ describe(
                 });
 
                 /*
-                 * createAssessment inserts the assessment before
-                 * looking up semesterBand. This assertion proves the
-                 * transaction correctly rolled the insert back.
+                 * createAssessment inserts the assessment
+                 * before looking up semesterBand. This
+                 * assertion proves that rollback removed it.
                  */
                 const [[{ assessmentCount }]] =
                     await pool.query(
@@ -364,9 +406,8 @@ describe(
                         ]
                     );
 
-                expect(
-                    Number(assessmentCount)
-                ).toBe(0);
+                expect(Number(assessmentCount))
+                    .toBe(0);
             }
         );
     }
