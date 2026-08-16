@@ -152,7 +152,7 @@ describe('assessmentController', () => {
             [
                 {
                     passingMark: 50,
-                    totalMark: 100.5
+                    totalMark: 99.5
                 },
                 'totalMark must be an integer'
             ],
