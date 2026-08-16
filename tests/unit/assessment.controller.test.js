@@ -1,48 +1,34 @@
-const {
-    addAssessment,
-    editAssessment,
-    removeAssessment,
-    getAssessment,
-    getAssessments,
-    publish,
-    renderBandAssessmentsPage,
-    unpublish,
-    validateAssessmentBody
-} = require('../../controllers/assessmentController');
-
-
-const {
-    getSemAndBandBySemBandId,
-    createAssessment,
-    updateAssessment,
-    getAssessmentById,
-    getAllAssessmentsFiltered,
-    publishAssessment,
-    deleteAssessment,
-    unpublishAssessment
-} = require('../../models/assessment');
-
-const BandModel = require('../../models/band');
-
 jest.mock('../../models/assessment', () => ({
-    getSemAndBandBySemBandId: jest.fn(),
     createAssessment: jest.fn(),
     updateAssessment: jest.fn(),
     getAssessmentById: jest.fn(),
     getAllAssessmentsFiltered: jest.fn(),
+    getSemAndBandBySemBandId: jest.fn(),
     publishAssessment: jest.fn(),
-    deleteAssessment: jest.fn(),
-    unpublishAssessment: jest.fn()
+    unpublishAssessment: jest.fn(),
+    deleteAssessment: jest.fn()
 }));
 
 jest.mock('../../models/band', () => ({
     getBand: jest.fn()
 }));
 
+const {
+    createAssessment,
+    updateAssessment,
+    publishAssessment,
+    unpublishAssessment,
+    deleteAssessment
+} = require('../../models/assessment');
 
-// ---------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------
+const {
+    validateAssessmentBody,
+    addAssessment,
+    editAssessment,
+    publish,
+    unpublish,
+    removeAssessment
+} = require('../../controllers/assessmentController');
 
 function mockResponse() {
     const res = {};
@@ -60,1269 +46,790 @@ const validBody = {
     band: 'A1',
     passingMark: 50,
     totalMark: 100,
-    rubrics: 'Sample rubric',
-    semesterId: 1
+    rubrics: 'Read each word clearly.',
+    semesterId: 202201
 };
 
+describe('assessmentController', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
 
-// =========================================================
-// validateAssessmentBody
-// =========================================================
-
-describe('validateAssessmentBody', () => {
-
-    test('should return null for valid assessment data', () => {
-        expect(validateAssessmentBody({
-            assessmentType: 'Fluency',
-            component: 'Vocabulary',
-            band: 'A1',
-            passingMark: 50,
-            totalMark: 100,
-        })).toBeNull();
+        jest
+            .spyOn(console, 'error')
+            .mockImplementation(() => {});
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
 
-    test.each([
-        ['assessmentType', ''],
-        ['component', ''],
-        ['band', ''],
-        ['passingMark', null],
-        ['totalMark', null]
-    ])(
-        'should reject missing %s',
-        (field, value) => {
+    describe('validateAssessmentBody', () => {
+        test('accepts a valid body', () => {
+            expect(
+                validateAssessmentBody(validBody)
+            ).toBeNull();
+        });
 
-            const body = {
-                assessmentType: 'Fluency',
-                component: 'Vocabulary',
-                band: 'A1',
-                passingMark: 50,
-                totalMark: 100
+        test.each([
+            ['assessmentType', ''],
+            ['component', ''],
+            ['band', ''],
+            ['passingMark', null],
+            ['totalMark', null]
+        ])(
+            'rejects missing %s',
+            (field, value) => {
+                const body = {
+                    ...validBody,
+                    [field]: value
+                };
+
+                expect(
+                    validateAssessmentBody(body)
+                ).toBe('All fields are required');
+            }
+        );
+
+        test('rejects an invalid assessment type', () => {
+            expect(
+                validateAssessmentBody({
+                    ...validBody,
+                    assessmentType: 'Speed Reading'
+                })
+            ).toBe(
+                'assessmentType must be one of: ' +
+                'Letter Formation, Narrative Writing, ' +
+                'Exposition Writing, Edit and Diagram 1, ' +
+                'Edit and Diagram 2, Edit and Diagram 3, ' +
+                'Comprehension, Primary, Secondary, ' +
+                'Picture Naming, Picture Description, ' +
+                'PA Identification, Phonics, ' +
+                'Word Reading Accuracy, Fluency, Word Spelling'
+            );
+        });
+
+        test('rejects an invalid component', () => {
+            expect(
+                validateAssessmentBody({
+                    ...validBody,
+                    component: 'Grammar'
+                })
+            ).toBe(
+                'component must be one of: ' +
+                'Vocabulary, Writing, Comprehension, PA / Phonics'
+            );
+        });
+
+        test('rejects an invalid band', () => {
+            expect(
+                validateAssessmentBody({
+                    ...validBody,
+                    band: 'D10'
+                })
+            ).toBe(
+                'band must be one of: ' +
+                'A1, A2, A3, B4, B5, B6, C7, C8, C9'
+            );
+        });
+
+        test('accepts a lowercase valid band', () => {
+            expect(
+                validateAssessmentBody({
+                    ...validBody,
+                    band: 'a1'
+                })
+            ).toBeNull();
+        });
+
+        test.each([
+            [
+                {
+                    passingMark: 50.5,
+                    totalMark: 100
+                },
+                'passingMark must be an integer'
+            ],
+            [
+                {
+                    passingMark: 50,
+                    totalMark: 100.5
+                },
+                'totalMark must be an integer'
+            ],
+            [
+                {
+                    passingMark: -1,
+                    totalMark: 100
+                },
+                'passingMark cannot be negative'
+            ],
+            [
+                {
+                    passingMark: 0,
+                    totalMark: -1
+                },
+                'totalMark cannot be negative'
+            ],
+            [
+                {
+                    passingMark: 101,
+                    totalMark: 100
+                },
+                'passingMark cannot exceed 100'
+            ],
+            [
+                {
+                    passingMark: 0,
+                    totalMark: 101
+                },
+                'totalMark cannot exceed 100'
+            ],
+            [
+                {
+                    passingMark: 51,
+                    totalMark: 50
+                },
+                'Passing Mark cannot exceed Total Mark'
+            ]
+        ])(
+            'rejects invalid mark combination %#',
+            (marks, expected) => {
+                expect(
+                    validateAssessmentBody({
+                        ...validBody,
+                        ...marks
+                    })
+                ).toBe(expected);
+            }
+        );
+
+        test.each([
+            [0, 0],
+            [0, 100],
+            [1, 100],
+            [50, 100],
+            [99, 100],
+            [100, 100]
+        ])(
+            'accepts passingMark %i and totalMark %i',
+            (passingMark, totalMark) => {
+                expect(
+                    validateAssessmentBody({
+                        ...validBody,
+                        passingMark,
+                        totalMark
+                    })
+                ).toBeNull();
+            }
+        );
+    });
+
+    describe('addAssessment', () => {
+        test('returns 400 for invalid body', async () => {
+            const req = {
+                body: {
+                    ...validBody,
+                    assessmentType: ''
+                }
             };
 
-            body[field] = value;
+            const res = mockResponse();
 
-            expect(validateAssessmentBody(body))
-                .toBe('All fields are required');
-        }
-    );
+            await addAssessment(req, res);
 
+            expect(res.status).toHaveBeenCalledWith(400);
 
-    test('should reject invalid assessment type', () => {
-        const body = {
-            assessmentType: 'Speed Reading',
-            component: 'Vocabulary',
-            band: 'A1',
-            passingMark: 50,
-            totalMark: 100,
-
-        };
-
-        expect(validateAssessmentBody(body))
-            .toBe(
-                'assessmentType must be one of: Letter Formation, Narrative Writing, Exposition Writing, Edit and Diagram 1, Edit and Diagram 2, Edit and Diagram 3, Comprehension, Primary, Secondary, Picture Naming, Picture Description, PA Identification, Phonics, Word Reading Accuracy, Fluency, Word Spelling'
-            );
-    });
-
-
-    test('should reject assessment type with incorrect case', () => {
-        const body = {
-            assessmentType: 'fluency',
-            component: 'Vocabulary',
-            band: 'A1',
-            passingMark: 50,
-            totalMark: 100,
-
-        };
-
-        expect(validateAssessmentBody(body)).not.toBeNull();
-    });
-
-
-    test('should reject invalid component', () => {
-        const body = {
-            assessmentType: 'Fluency',
-            component: 'Grammar',
-            band: 'A1',
-            passingMark: 50,
-            totalMark: 100,
-
-        };
-
-        expect(validateAssessmentBody(body))
-            .toBe(
-                'component must be one of: Vocabulary, Writing, Comprehension, PA / Phonics'
-            );
-    });
-
-
-    test('should reject invalid band', () => {
-        const body = {
-            assessmentType: 'Fluency',
-            component: 'Vocabulary',
-            band: 'D10',
-            passingMark: 50,
-            totalMark: 100,
-
-        };
-
-        expect(validateAssessmentBody(body))
-            .toBe(
-                'band must be one of: A1, A2, A3, B4, B5, B6, C7, C8, C9'
-            );
-    });
-
-
-    test('should accept band case-insensitively', () => {
-        const body = {
-            assessmentType: 'Fluency',
-            component: 'Vocabulary',
-            band: 'a1',
-            passingMark: 50,
-            totalMark: 100,
-
-        };
-
-        expect(validateAssessmentBody(body)).toBeNull();
-    });
-
-
-    test.each([
-        [50.5, 'passingMark must be an integer'],
-        ['50.5', 'passingMark must be an integer'],
-        ['', 'All fields are required']
-    ])(
-        'should validate passingMark %s correctly',
-        (passingMark, expected) => {
-
-            const body = {
-                assessmentType: 'Fluency',
-                component: 'Vocabulary',
-                band: 'A1',
-                passingMark,
-                totalMark: 100,
-
-            };
-
-            expect(validateAssessmentBody(body)).toBe(expected);
-        }
-    );
-
-
-    test('should reject non-integer totalMark', () => {
-        const body = {
-            assessmentType: 'Fluency',
-            component: 'Vocabulary',
-            band: 'A1',
-            passingMark: 50,
-            totalMark: 99.9,
-
-        };
-
-        expect(validateAssessmentBody(body))
-            .toBe('totalMark must be an integer');
-    });
-
-
-    test('should reject negative passingMark', () => {
-        const body = {
-            assessmentType: 'Fluency',
-            component: 'Vocabulary',
-            band: 'A1',
-            passingMark: -1,
-            totalMark: 100,
-
-        };
-
-        expect(validateAssessmentBody(body))
-            .toBe('passingMark cannot be negative');
-    });
-
-
-    test('should reject negative totalMark', () => {
-        const body = {
-            assessmentType: 'Fluency',
-            component: 'Vocabulary',
-            band: 'A1',
-            passingMark: 50,
-            totalMark: -1,
-
-        };
-
-        expect(validateAssessmentBody(body))
-            .toBe('totalMark cannot be negative');
-    });
-
-
-    test('should allow passingMark equal to totalMark', () => {
-        const body = {
-            assessmentType: 'Fluency',
-            component: 'Vocabulary',
-            band: 'A1',
-            passingMark: 100,
-            totalMark: 100,
-
-        };
-
-        expect(validateAssessmentBody(body)).toBeNull();
-    });
-
-
-    test('should allow passingMark of 0', () => {
-        const body = {
-            assessmentType: 'Fluency',
-            component: 'Vocabulary',
-            band: 'A1',
-            passingMark: 0,
-            totalMark: 100,
-
-        };
-
-        expect(validateAssessmentBody(body)).toBeNull();
-    });
-
-
-    test('should reject passingMark greater than totalMark', () => {
-        const body = {
-            assessmentType: 'Fluency',
-            component: 'Vocabulary',
-            band: 'A1',
-            passingMark: 101,
-            totalMark: 100,
-
-        };
-
-        expect(validateAssessmentBody(body))
-            .toBe('Passing Mark cannot exceed Total Mark');
-    });
-
-
-});
-
-
-// =========================================================
-// addAssessment
-// =========================================================
-
-describe('addAssessment', () => {
-
-    let req;
-    let res;
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-
-        req = {
-            body: { ...validBody }
-        };
-
-        res = mockResponse();
-    });
-
-
-    test('should create assessment successfully', async () => {
-
-        createAssessment.mockResolvedValue({
-            success: true,
-            assessmentId: 123
-        });
-
-        await addAssessment(req, res);
-
-        expect(createAssessment).toHaveBeenCalledWith(
-            {
-                assessmentType: 'Fluency',
-                component: 'Vocabulary',
-                band: 'A1',
-                passingMark: 50,
-                totalMark: 100,
-                rubrics: 'Sample rubric'
-            },
-            1
-        );
-
-        expect(res.status).toHaveBeenCalledWith(201);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Assessment created successfully',
-            assessmentId: 123
-        });
-    });
-
-
-    test('should return 400 for invalid request body', async () => {
-
-        req.body.assessmentType = '';
-
-        await addAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'All fields are required'
-        });
-
-        expect(createAssessment).not.toHaveBeenCalled();
-    });
-
-
-    test('should convert band to uppercase before calling model', async () => {
-
-        req.body.band = 'a1';
-
-        createAssessment.mockResolvedValue({
-            success: true,
-            assessmentId: 123
-        });
-
-        await addAssessment(req, res);
-
-        expect(createAssessment).toHaveBeenCalledWith(
-            expect.objectContaining({
-                band: 'A1'
-            }),
-            1
-        );
-    });
-
-
-    test('should return 409 when assessment type already exists', async () => {
-
-        createAssessment.mockResolvedValue({
-            success: false,
-            reason: 'DUPLICATE_ASSESSMENT_TYPE'
-        });
-
-        await addAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(409);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Assessment type already exists for this band'
-        });
-    });
-
-
-    test('should return 404 when semester band is not found', async () => {
-
-        createAssessment.mockResolvedValue({
-            success: false,
-            reason: 'SEMESTER_BAND_NOT_FOUND'
-        });
-
-        await addAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(404);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'No matching band found for this semester'
-        });
-    });
-
-
-    test('should return 500 for model failure', async () => {
-
-        createAssessment.mockResolvedValue({
-            success: false,
-            reason: 'UNKNOWN_ERROR'
-        });
-
-        await addAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(500);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Failed to create assessment'
-        });
-    });
-
-
-    test('should return 500 when model throws an error', async () => {
-
-        createAssessment.mockRejectedValue(
-            new Error('Database failure')
-        );
-
-        await addAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(500);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Failed to create assessment'
-        });
-    });
-});
-
-
-// =========================================================
-// editAssessment
-// =========================================================
-
-describe('editAssessment', () => {
-
-    let req;
-    let res;
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-
-        req = {
-            params: {
-                assessmentId: '123'
-            },
-            body: { ...validBody }
-        };
-
-        res = mockResponse();
-    });
-
-
-    test('should update assessment successfully', async () => {
-
-        updateAssessment.mockResolvedValue({
-            success: true
-        });
-
-        await editAssessment(req, res);
-
-        expect(updateAssessment).toHaveBeenCalledWith(
-            '123',
-            {
-                assessmentType: 'Fluency',
-                component: 'Vocabulary',
-                band: 'A1',
-                passingMark: 50,
-                totalMark: 100,
-                rubrics: 'Sample rubric'
-            },
-            1
-        );
-
-        expect(res.status).toHaveBeenCalledWith(200);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Assessment updated successfully'
-        });
-    });
-
-
-    test('should return 400 for invalid body', async () => {
-
-        req.body.component = '';
-
-        await editAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'All fields are required'
-        });
-
-        expect(updateAssessment).not.toHaveBeenCalled();
-    });
-
-
-    test('should return 404 when assessment does not exist', async () => {
-
-        updateAssessment.mockResolvedValue({
-            success: false,
-            reason: 'NOT_FOUND'
-        });
-
-        await editAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(404);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Assessment not found'
-        });
-    });
-
-
-    test('should return 409 when assessment is already published', async () => {
-
-        updateAssessment.mockResolvedValue({
-            success: false,
-            reason: 'ALREADY_PUBLISHED'
-        });
-
-        await editAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(409);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message:
-                'Cannot edit: this assessment has already been published for this semester'
-        });
-    });
-
-
-    test('should return 409 when fields are locked', async () => {
-
-        updateAssessment.mockResolvedValue({
-            success: false,
-            reason: 'LOCKED_FIELDS'
-        });
-
-        await editAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(409);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message:
-                'This assessment has been published before: only rubrics can be changed'
-        });
-    });
-
-
-    test('should return 409 for duplicate assessment type', async () => {
-
-        updateAssessment.mockResolvedValue({
-            success: false,
-            reason: 'DUPLICATE_ASSESSMENT_TYPE'
-        });
-
-        await editAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(409);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Assessment type already exists for this band'
-        });
-    });
-
-
-    test('should return 404 when semester band is not found', async () => {
-
-        updateAssessment.mockResolvedValue({
-            success: false,
-            reason: 'SEMESTER_BAND_NOT_FOUND'
-        });
-
-        await editAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(404);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'No matching band found for this semester'
-        });
-    });
-
-
-    test('should return 500 for unknown model failure', async () => {
-
-        updateAssessment.mockResolvedValue({
-            success: false,
-            reason: 'UNKNOWN_ERROR'
-        });
-
-        await editAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(500);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Failed to update assessment'
-        });
-    });
-
-
-    test('should return 500 when model throws error', async () => {
-
-        updateAssessment.mockRejectedValue(
-            new Error('Database failure')
-        );
-
-        await editAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(500);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Failed to update assessment'
-        });
-    });
-});
-
-
-// =========================================================
-// removeAssessment
-// =========================================================
-
-describe('removeAssessment', () => {
-
-    let req;
-    let res;
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-
-        req = {
-            params: {
-                assessmentId: '123'
-            }
-        };
-
-        res = mockResponse();
-    });
-
-
-    test('should delete assessment successfully', async () => {
-
-        deleteAssessment.mockResolvedValue({
-            success: true
-        });
-
-        await removeAssessment(req, res);
-
-        expect(deleteAssessment)
-            .toHaveBeenCalledWith('123');
-
-        expect(res.status).toHaveBeenCalledWith(200);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Assessment deleted successfully'
-        });
-    });
-
-
-    test('should return 404 when assessment does not exist', async () => {
-
-        deleteAssessment.mockResolvedValue({
-            success: false,
-            reason: 'NOT_FOUND'
-        });
-
-        await removeAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(404);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Assessment not found'
-        });
-    });
-
-
-    test('should return 409 when assessment has published records', async () => {
-
-        deleteAssessment.mockResolvedValue({
-            success: false,
-            reason: 'ALREADY_PUBLISHED'
-        });
-
-        await removeAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(409);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message:
-                'Cannot delete: this assessment has published records'
-        });
-    });
-
-
-    test('should return 500 when model throws error', async () => {
-
-        deleteAssessment.mockRejectedValue(
-            new Error('Database failure')
-        );
-
-        await removeAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(500);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Failed to delete assessment'
-        });
-    });
-});
-
-
-// =========================================================
-// unpublish
-// =========================================================
-
-describe('unpublish', () => {
-
-    let req;
-    let res;
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-
-        req = {
-            params: {
-                assessmentId: '123'
-            },
-            body: {
-                semesterId: '1'
-            }
-        };
-
-        res = mockResponse();
-    });
-
-
-    test('should unpublish assessment successfully', async () => {
-
-        unpublishAssessment.mockResolvedValue({
-            success: true
-        });
-
-        await unpublish(req, res);
-
-        expect(unpublishAssessment)
-            .toHaveBeenCalledWith('123', 1);
-
-        expect(res.status).toHaveBeenCalledWith(200);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Assessment unpublished successfully'
-        });
-    });
-
-
-    test('should return 400 when semesterId is missing', async () => {
-
-        req.body.semesterId = undefined;
-
-        await unpublish(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'semesterId is required'
-        });
-
-        expect(unpublishAssessment).not.toHaveBeenCalled();
-    });
-
-
-    test('should return 400 when assessment is not published', async () => {
-
-        unpublishAssessment.mockResolvedValue({
-            success: false,
-            reason: 'NOT_PUBLISHED'
-        });
-
-        await unpublish(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message:
-                'This assessment is not published for this semester'
-        });
-    });
-
-
-    test('should return 409 when students have submitted work', async () => {
-
-        unpublishAssessment.mockResolvedValue({
-            success: false,
-            reason: 'HAS_SUBMISSIONS'
-        });
-
-        await unpublish(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(409);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message:
-                'Cannot unpublish: students have already submitted work'
-        });
-    });
-
-
-    test('should return 500 when model throws error', async () => {
-
-        unpublishAssessment.mockRejectedValue(
-            new Error('Database failure')
-        );
-
-        await unpublish(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(500);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Failed to unpublish assessment'
-        });
-    });
-});
-
-
-// =========================================================
-// getAssessment
-// =========================================================
-
-describe('getAssessment', () => {
-
-    let req;
-    let res;
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-
-        req = {
-            params: {
-                assessmentId: '123'
-            }
-        };
-
-        res = mockResponse();
-    });
-
-
-    test('should return assessment successfully', async () => {
-
-        const assessment = {
-            assessmentId: 123,
-            assessmentType: 'Fluency',
-            component: 'Vocabulary',
-            band: 'A1'
-        };
-
-        getAssessmentById.mockResolvedValue(assessment);
-
-        await getAssessment(req, res);
-
-        expect(getAssessmentById)
-            .toHaveBeenCalledWith('123');
-
-        expect(res.status).toHaveBeenCalledWith(200);
-
-        expect(res.json).toHaveBeenCalledWith({
-            data: assessment
-        });
-    });
-
-
-    test('should return 404 when assessment does not exist', async () => {
-
-        getAssessmentById.mockResolvedValue(null);
-
-        await getAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(404);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Assessment not found'
-        });
-    });
-
-
-    test('should return 500 when model throws error', async () => {
-
-        getAssessmentById.mockRejectedValue(
-            new Error('Database failure')
-        );
-
-        await getAssessment(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(500);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Failed to fetch assessment'
-        });
-    });
-});
-
-
-// =========================================================
-// getAssessments
-// =========================================================
-
-describe('getAssessments', () => {
-
-    let req;
-    let res;
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-
-        req = {
-            params: {
-                semesterBandId: 'band-a1-2022-s1'
-            },
-            query: {}
-        };
-
-        getSemAndBandBySemBandId.mockResolvedValue({
-            semesterId: 202201,
-            band: 'A1'
-        });
-
-
-        res = mockResponse();
-    });
-
-
-    test('should return all assessments successfully', async () => {
-
-        const assessments = [
-            {
-                assessmentId: 1,
-                assessmentType: 'Fluency'
-            },
-            {
-                assessmentId: 2,
-                assessmentType: 'Comprehension'
-            }
-        ];
-
-        getAllAssessmentsFiltered.mockResolvedValue(assessments);
-
-        await getAssessments(req, res);
-
-        expect(getAllAssessmentsFiltered)
-            .toHaveBeenCalledWith(202201, null, null, 'A1');
-
-        expect(res.status).toHaveBeenCalledWith(200);
-
-        expect(res.json).toHaveBeenCalledWith({
-            data: assessments
-        });
-    });
-
-
-    test('should filter by assessmentType', async () => {
-
-        getAllAssessmentsFiltered.mockResolvedValue([]);
-
-        req.query.assessmentType = 'Fluency';
-
-        await getAssessments(req, res);
-
-        expect(getAllAssessmentsFiltered)
-            .toHaveBeenCalledWith(
-                202201,
-                'Fluency',
-                null,
-                'A1'
-            );
-
-        expect(res.status).toHaveBeenCalledWith(200);
-    });
-
-
-    test('should filter by component', async () => {
-
-        getAllAssessmentsFiltered.mockResolvedValue([]);
-
-        req.query.component = 'Vocabulary';
-
-        await getAssessments(req, res);
-
-        expect(getAllAssessmentsFiltered)
-            .toHaveBeenCalledWith(
-                202201,
-                null,
-                'Vocabulary',
-                'A1'
-            );
-    });
-
-
-    test('should filter by band and convert band to uppercase', async () => {
-
-        getAllAssessmentsFiltered.mockResolvedValue([]);
-
-        req.query.band = 'a1';
-
-        await getAssessments(req, res);
-
-        expect(getAllAssessmentsFiltered)
-            .toHaveBeenCalledWith(
-                202201,
-                null,
-                null,
-                'A1'
-            );
-    });
-
-
-    test('should apply all filters together', async () => {
-
-        getAllAssessmentsFiltered.mockResolvedValue([]);
-
-        req.query = {
-            assessmentType: 'Fluency',
-            component: 'Vocabulary',
-            band: 'a1'
-        };
-
-        await getAssessments(req, res);
-
-        expect(getAllAssessmentsFiltered)
-            .toHaveBeenCalledWith(
-                202201,
-                'Fluency',
-                'Vocabulary',
-                'A1'
-            );
-    });
-
-
-    test('should return 400 when semesterBandId is missing', async () => {
-
-        req.params.semesterBandId = undefined;
-
-        await getAssessments(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'semesterBandId is required'
-        });
-
-        expect(getAllAssessmentsFiltered).not.toHaveBeenCalled();
-    });
-
-
-    test('should return 404 when semester band is not found', async () => {
-        getSemAndBandBySemBandId.mockResolvedValue(null);
-
-        await getAssessments(req, res);
-
-        expect(getSemAndBandBySemBandId)
-            .toHaveBeenCalledWith('band-a1-2022-s1');
-
-        expect(getAllAssessmentsFiltered)
-            .not.toHaveBeenCalled();
-
-        expect(res.status)
-            .toHaveBeenCalledWith(404);
-
-        expect(res.json)
-            .toHaveBeenCalledWith({
-                message: 'Semester band not found'
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'All fields are required'
             });
-    });
 
-
-    test('should return 500 when model throws error', async () => {
-
-        getAllAssessmentsFiltered.mockRejectedValue(
-            new Error('Database failure')
-        );
-
-        await getAssessments(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(500);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Failed to fetch assessments'
-        });
-    });
-});
-
-
-// =========================================================
-// publish
-// =========================================================
-
-describe('publish', () => {
-
-    let req;
-    let res;
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-
-        req = {
-            params: {
-                assessmentId: '123'
-            },
-            body: {
-                semesterId: '1',
-                dueDate: '2026-08-31'
-            }
-        };
-
-        res = mockResponse();
-    });
-
-
-    test('should publish assessment successfully', async () => {
-
-        publishAssessment.mockResolvedValue({
-            success: true,
-            studentsAssigned: 25
+            expect(
+                createAssessment
+            ).not.toHaveBeenCalled();
         });
 
-        await publish(req, res);
+        test('creates an assessment successfully', async () => {
+            const req = {
+                body: {
+                    ...validBody,
+                    band: 'a1'
+                }
+            };
 
-        expect(publishAssessment)
-            .toHaveBeenCalledWith(
-                '123',
-                1,
-                '2026-08-31'
+            const res = mockResponse();
+
+            createAssessment.mockResolvedValue({
+                success: true,
+                assessmentId: 15
+            });
+
+            await addAssessment(req, res);
+
+            expect(createAssessment).toHaveBeenCalledWith(
+                {
+                    assessmentType: 'Fluency',
+                    component: 'Vocabulary',
+                    band: 'A1',
+                    passingMark: 50,
+                    totalMark: 100,
+                    rubrics: 'Read each word clearly.'
+                },
+                202201
             );
 
-        expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.status).toHaveBeenCalledWith(201);
 
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Assessment published successfully',
-            studentsAssigned: 25
-        });
-    });
-
-
-    test('should return 400 when semesterId is missing', async () => {
-
-        req.body.semesterId = undefined;
-
-        await publish(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'semesterId and dueDate are required'
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'Assessment created successfully',
+                assessmentId: 15
+            });
         });
 
-        expect(publishAssessment).not.toHaveBeenCalled();
-    });
+        test.each([
+            [
+                'DUPLICATE_ASSESSMENT_TYPE',
+                409,
+                'Assessment type already exists for this band'
+            ],
+            [
+                'SEMESTER_BAND_NOT_FOUND',
+                404,
+                'No matching band found for this semester'
+            ],
+            [
+                'WEIGHT_CREATION_FAILED',
+                500,
+                'Failed to assign weight to assessment'
+            ],
+            [
+                'UNKNOWN_FAILURE',
+                500,
+                'Failed to create assessment'
+            ]
+        ])(
+            'maps %s to HTTP %i',
+            async (reason, status, message) => {
+                const req = {
+                    body: { ...validBody }
+                };
 
+                const res = mockResponse();
 
-    test('should return 400 when dueDate is missing', async () => {
+                createAssessment.mockResolvedValue({
+                    success: false,
+                    reason
+                });
 
-        req.body.dueDate = undefined;
+                await addAssessment(req, res);
 
-        await publish(req, res);
+                expect(res.status).toHaveBeenCalledWith(
+                    status
+                );
 
-        expect(res.status).toHaveBeenCalledWith(400);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'semesterId and dueDate are required'
-        });
-
-        expect(publishAssessment).not.toHaveBeenCalled();
-    });
-
-
-    test('should return 404 when assessment is not found', async () => {
-
-        publishAssessment.mockResolvedValue({
-            success: false,
-            reason: 'NOT_FOUND'
-        });
-
-        await publish(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(404);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Assessment not found'
-        });
-    });
-
-
-    test('should return 409 when assessment is already published', async () => {
-
-        publishAssessment.mockResolvedValue({
-            success: false,
-            reason: 'ALREADY_PUBLISHED'
-        });
-
-        await publish(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(409);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Already published for this semester'
-        });
-    });
-
-
-    test('should return 400 when there are no students', async () => {
-
-        publishAssessment.mockResolvedValue({
-            success: false,
-            reason: 'NO_STUDENTS'
-        });
-
-        await publish(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-
-        expect(res.json).toHaveBeenCalledWith({
-            message:
-                'No students found for this band in this semester'
-        });
-    });
-
-
-    test('should return 500 when model throws error', async () => {
-
-        publishAssessment.mockRejectedValue(
-            new Error('Database failure')
+                expect(res.json).toHaveBeenCalledWith({
+                    message
+                });
+            }
         );
 
-        await publish(req, res);
+        test('returns 500 when model throws', async () => {
+            const req = {
+                body: { ...validBody }
+            };
 
-        expect(res.status).toHaveBeenCalledWith(500);
+            const res = mockResponse();
 
-        expect(res.json).toHaveBeenCalledWith({
-            message: 'Failed to publish assessment'
+            createAssessment.mockRejectedValue(
+                new Error('Database insert failed')
+            );
+
+            await addAssessment(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'Failed to create assessment'
+            });
         });
     });
-});
 
+    describe('editAssessment', () => {
+        test('returns 400 for invalid body', async () => {
+            const req = {
+                params: {
+                    assessmentId: '15'
+                },
+                body: {
+                    ...validBody,
+                    component: ''
+                }
+            };
 
-// =========================================================
-// renderBandAssessmentsPage
-// =========================================================
+            const res = mockResponse();
 
-describe('renderBandAssessmentsPage', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
+            await editAssessment(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+
+            expect(updateAssessment).not.toHaveBeenCalled();
+        });
+
+        test('updates an assessment successfully', async () => {
+            const req = {
+                params: {
+                    assessmentId: '15'
+                },
+                body: {
+                    ...validBody,
+                    passingMark: 60,
+                    rubrics: 'Updated rubric.'
+                }
+            };
+
+            const res = mockResponse();
+
+            updateAssessment.mockResolvedValue({
+                success: true
+            });
+
+            await editAssessment(req, res);
+
+            expect(updateAssessment).toHaveBeenCalledWith(
+                '15',
+                {
+                    assessmentType: 'Fluency',
+                    component: 'Vocabulary',
+                    band: 'A1',
+                    passingMark: 60,
+                    totalMark: 100,
+                    rubrics: 'Updated rubric.'
+                },
+                202201
+            );
+
+            expect(res.status).toHaveBeenCalledWith(200);
+
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'Assessment updated successfully'
+            });
+        });
+
+        test.each([
+            [
+                'NOT_FOUND',
+                404,
+                'Assessment not found'
+            ],
+            [
+                'ALREADY_PUBLISHED',
+                409,
+                'Cannot edit: this assessment has already ' +
+                'been published for this semester'
+            ],
+            [
+                'LOCKED_FIELDS',
+                409,
+                'This assessment has been published before: ' +
+                'only rubrics can be changed'
+            ],
+            [
+                'DUPLICATE_ASSESSMENT_TYPE',
+                409,
+                'Assessment type already exists for this band'
+            ],
+            [
+                'SEMESTER_BAND_NOT_FOUND',
+                404,
+                'No matching band found for this semester'
+            ],
+            [
+                'UNKNOWN_FAILURE',
+                500,
+                'Failed to update assessment'
+            ]
+        ])(
+            'maps edit failure %s to HTTP %i',
+            async (reason, status, message) => {
+                const req = {
+                    params: {
+                        assessmentId: '15'
+                    },
+                    body: { ...validBody }
+                };
+
+                const res = mockResponse();
+
+                updateAssessment.mockResolvedValue({
+                    success: false,
+                    reason
+                });
+
+                await editAssessment(req, res);
+
+                expect(res.status).toHaveBeenCalledWith(
+                    status
+                );
+
+                expect(res.json).toHaveBeenCalledWith({
+                    message
+                });
+            }
+        );
+
+        test('returns 500 when update throws', async () => {
+            const req = {
+                params: {
+                    assessmentId: '15'
+                },
+                body: { ...validBody }
+            };
+
+            const res = mockResponse();
+
+            updateAssessment.mockRejectedValue(
+                new Error('Database update failed')
+            );
+
+            await editAssessment(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'Failed to update assessment'
+            });
+        });
     });
 
-    test('should render assessments page with semester band details', async () => {
-        const req = {
+    describe('publish', () => {
+        const validRequest = () => ({
             params: {
-                semesterBandId: 'band-a1-2022-s1'
-            }
-        };
-
-        const res = mockResponse();
-
-        const band = {
-            semesterId: 202201,
-            bandCode: 'A1',
-            name: 'Band A1'
-        };
-
-        BandModel.getBand.mockResolvedValue(band);
-
-        await renderBandAssessmentsPage(req, res);
-
-        expect(BandModel.getBand)
-            .toHaveBeenCalledWith('band-a1-2022-s1');
-
-        expect(res.render).toHaveBeenCalledWith(
-            'assessmentsList',
-            {
-                semesterBandId: 'band-a1-2022-s1',
+                assessmentId: '15'
+            },
+            body: {
                 semesterId: 202201,
-                band,
-                bandCode: 'A1'
+                dueDate: '2026-09-30'
+            }
+        });
+
+        test.each([
+            [
+                {
+                    dueDate: '2026-09-30'
+                }
+            ],
+            [
+                {
+                    semesterId: 202201
+                }
+            ]
+        ])(
+            'returns 400 when publish body is incomplete',
+            async body => {
+                const req = {
+                    params: {
+                        assessmentId: '15'
+                    },
+                    body
+                };
+
+                const res = mockResponse();
+
+                await publish(req, res);
+
+                expect(res.status).toHaveBeenCalledWith(400);
+
+                expect(res.json).toHaveBeenCalledWith({
+                    message:
+                        'semesterId and dueDate are required'
+                });
+
+                expect(
+                    publishAssessment
+                ).not.toHaveBeenCalled();
             }
         );
+
+        test('publishes successfully', async () => {
+            const req = validRequest();
+            const res = mockResponse();
+
+            publishAssessment.mockResolvedValue({
+                success: true,
+                studentsAssigned: 24
+            });
+
+            await publish(req, res);
+
+            expect(publishAssessment).toHaveBeenCalledWith(
+                '15',
+                202201,
+                '2026-09-30'
+            );
+
+            expect(res.status).toHaveBeenCalledWith(200);
+
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'Assessment published successfully',
+                studentsAssigned: 24
+            });
+        });
+
+        test.each([
+            [
+                'NOT_FOUND',
+                404,
+                'Assessment not found'
+            ],
+            [
+                'ALREADY_PUBLISHED',
+                409,
+                'Already published for this semester'
+            ],
+            [
+                'NO_STUDENTS',
+                400,
+                'No students found for this band in this semester'
+            ]
+        ])(
+            'maps publish failure %s to HTTP %i',
+            async (reason, status, message) => {
+                const req = validRequest();
+                const res = mockResponse();
+
+                publishAssessment.mockResolvedValue({
+                    success: false,
+                    reason
+                });
+
+                await publish(req, res);
+
+                expect(res.status).toHaveBeenCalledWith(
+                    status
+                );
+
+                expect(res.json).toHaveBeenCalledWith({
+                    message
+                });
+            }
+        );
+
+        test('returns 500 when publishing throws', async () => {
+            const req = validRequest();
+            const res = mockResponse();
+
+            publishAssessment.mockRejectedValue(
+                new Error('Database insert failed')
+            );
+
+            await publish(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'Failed to publish assessment'
+            });
+        });
     });
 
-    test('should render 404 when the band does not exist', async () => {
-        const req = {
-            params: { semesterBandId: 'missing-band' }
-        };
-        const res = mockResponse();
+    describe('unpublish', () => {
+        const validRequest = () => ({
+            params: {
+                assessmentId: '15'
+            },
+            body: {
+                semesterId: 202201
+            }
+        });
 
-        BandModel.getBand.mockResolvedValue(null);
+        test('returns 400 when semesterId is missing', async () => {
+            const req = {
+                params: {
+                    assessmentId: '15'
+                },
+                body: {}
+            };
 
-        await renderBandAssessmentsPage(req, res);
+            const res = mockResponse();
 
-        expect(res.status).toHaveBeenCalledWith(404);
-        expect(res.render).toHaveBeenCalledWith('error', {
-            message: 'Band not found',
-            error: { status: 404 }
+            await unpublish(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'semesterId is required'
+            });
+
+            expect(
+                unpublishAssessment
+            ).not.toHaveBeenCalled();
+        });
+
+        test('unpublishes successfully', async () => {
+            const req = validRequest();
+            const res = mockResponse();
+
+            unpublishAssessment.mockResolvedValue({
+                success: true
+            });
+
+            await unpublish(req, res);
+
+            expect(unpublishAssessment).toHaveBeenCalledWith(
+                '15',
+                202201
+            );
+
+            expect(res.status).toHaveBeenCalledWith(200);
+
+            expect(res.json).toHaveBeenCalledWith({
+                message:
+                    'Assessment unpublished successfully'
+            });
+        });
+
+        test.each([
+            [
+                'NOT_PUBLISHED',
+                400,
+                'This assessment is not published for this semester'
+            ],
+            [
+                'HAS_SUBMISSIONS',
+                409,
+                'Cannot unpublish: students have already submitted work'
+            ]
+        ])(
+            'maps unpublish failure %s to HTTP %i',
+            async (reason, status, message) => {
+                const req = validRequest();
+                const res = mockResponse();
+
+                unpublishAssessment.mockResolvedValue({
+                    success: false,
+                    reason
+                });
+
+                await unpublish(req, res);
+
+                expect(res.status).toHaveBeenCalledWith(
+                    status
+                );
+
+                expect(res.json).toHaveBeenCalledWith({
+                    message
+                });
+            }
+        );
+
+        test('returns 500 when unpublishing throws', async () => {
+            const req = validRequest();
+            const res = mockResponse();
+
+            unpublishAssessment.mockRejectedValue(
+                new Error('Database delete failed')
+            );
+
+            await unpublish(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'Failed to unpublish assessment'
+            });
+        });
+    });
+
+    describe('removeAssessment', () => {
+        test('deletes successfully', async () => {
+            const req = {
+                params: {
+                    assessmentId: '15'
+                }
+            };
+
+            const res = mockResponse();
+
+            deleteAssessment.mockResolvedValue({
+                success: true
+            });
+
+            await removeAssessment(req, res);
+
+            expect(deleteAssessment).toHaveBeenCalledWith(
+                '15'
+            );
+
+            expect(res.status).toHaveBeenCalledWith(200);
+
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'Assessment deleted successfully'
+            });
+        });
+
+        test.each([
+            [
+                'NOT_FOUND',
+                404,
+                'Assessment not found'
+            ],
+            [
+                'ALREADY_PUBLISHED',
+                409,
+                'Cannot delete: this assessment has published records'
+            ],
+            [
+                'UNKNOWN_FAILURE',
+                500,
+                'Failed to delete assessment'
+            ]
+        ])(
+            'maps delete failure %s to HTTP %i',
+            async (reason, status, message) => {
+                const req = {
+                    params: {
+                        assessmentId: '15'
+                    }
+                };
+
+                const res = mockResponse();
+
+                deleteAssessment.mockResolvedValue({
+                    success: false,
+                    reason
+                });
+
+                await removeAssessment(req, res);
+
+                expect(res.status).toHaveBeenCalledWith(
+                    status
+                );
+
+                expect(res.json).toHaveBeenCalledWith({
+                    message
+                });
+            }
+        );
+
+        test('returns 500 when deletion throws', async () => {
+            const req = {
+                params: {
+                    assessmentId: '15'
+                }
+            };
+
+            const res = mockResponse();
+
+            deleteAssessment.mockRejectedValue(
+                new Error('Database delete failed')
+            );
+
+            await removeAssessment(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+
+            expect(res.json).toHaveBeenCalledWith({
+                message: 'Failed to delete assessment'
+            });
         });
     });
 });

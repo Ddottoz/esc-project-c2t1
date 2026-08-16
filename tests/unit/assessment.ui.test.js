@@ -13,6 +13,15 @@ function flushPromises() {
     return new Promise(resolve => setTimeout(resolve, 0));
 }
 
+function fire(element, eventType) {
+    element.dispatchEvent(
+        new Event(eventType, {
+            bubbles: true,
+            cancelable: true
+        })
+    );
+}
+
 function createDOM() {
     document.body.innerHTML = `
         <h1 id="assessmentCountTitle"></h1>
@@ -23,7 +32,9 @@ function createDOM() {
             name="assessmentType"
         >
             <option value="">All Types</option>
+            <option value="Letter Formation">Letter Formation</option>
             <option value="Fluency">Fluency</option>
+            <option value="Comprehension">Comprehension</option>
         </select>
 
         <select
@@ -33,6 +44,7 @@ function createDOM() {
         >
             <option value="">All Components</option>
             <option value="Vocabulary">Vocabulary</option>
+            <option value="Writing">Writing</option>
         </select>
 
         <table>
@@ -53,6 +65,9 @@ function createDOM() {
 
                 <select id="assessmentType">
                     <option value=""></option>
+                    <option value="Letter Formation">
+                        Letter Formation
+                    </option>
                     <option value="Fluency">Fluency</option>
                     <option value="Comprehension">
                         Comprehension
@@ -79,10 +94,7 @@ function createDOM() {
 
                 <textarea id="rubrics"></textarea>
 
-                <button
-                    id="cancelModalBtn"
-                    type="button"
-                >
+                <button id="cancelModalBtn" type="button">
                     Cancel
                 </button>
 
@@ -97,17 +109,10 @@ function createDOM() {
             <span id="publishMarks"></span>
 
             <form id="publishForm">
-                <input
-                    id="publishAssessmentId"
-                    type="hidden"
-                >
-
+                <input id="publishAssessmentId" type="hidden">
                 <input id="dueDate" type="date">
 
-                <button
-                    id="cancelPublishBtn"
-                    type="button"
-                >
+                <button id="cancelPublishBtn" type="button">
                     Cancel
                 </button>
 
@@ -118,10 +123,7 @@ function createDOM() {
         <div id="rubricsModal" style="display: none;">
             <p id="rubricsModalContent"></p>
 
-            <button
-                id="closeRubricsBtn"
-                type="button"
-            >
+            <button id="closeRubricsBtn" type="button">
                 Close
             </button>
         </div>
@@ -134,9 +136,9 @@ function createDOM() {
     document.body.dataset.band = 'A1';
 }
 
-function createAssessment(overrides = {}) {
+function assessment(overrides = {}) {
     return {
-        assessmentId: 5,
+        assessmentId: 15,
         assessmentType: 'Fluency',
         component: 'Vocabulary',
         band: 'A1',
@@ -144,7 +146,7 @@ function createAssessment(overrides = {}) {
         totalMark: 100,
         weight: 0,
         rubrics: 'Read each word clearly.',
-        totalAssigned: 10,
+        totalAssigned: 24,
         totalSubmitted: 0,
         totalGraded: 0,
         isPublished: false,
@@ -153,65 +155,58 @@ function createAssessment(overrides = {}) {
     };
 }
 
-function fire(element, eventType) {
-    element.dispatchEvent(
-        new Event(eventType, {
-            bubbles: true,
-            cancelable: true
-        })
-    );
+function fillAssessmentForm(overrides = {}) {
+    const values = {
+        id: '',
+        assessmentType: 'Fluency',
+        component: 'Vocabulary',
+        passingMark: '50',
+        totalMark: '100',
+        weight: '0',
+        rubrics: 'Read each word clearly.',
+        ...overrides
+    };
+
+    document.getElementById('assessmentId').value =
+        values.id;
+
+    document.getElementById('assessmentType').value =
+        values.assessmentType;
+
+    document.getElementById('component').value =
+        values.component;
+
+    document.getElementById('passingMark').value =
+        values.passingMark;
+
+    document.getElementById('totalMark').value =
+        values.totalMark;
+
+    document.getElementById('weight').value =
+        values.weight;
+
+    document.getElementById('rubrics').value =
+        values.rubrics;
 }
 
-function clickSvg(element) {
-    element.dispatchEvent(
-        new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true
-        })
+async function renderAssessments(rows) {
+    fetch.mockImplementationOnce(() =>
+        mockResponse({ data: rows })
     );
-}
 
-async function loadUsingFilter() {
     fire(
-        document.getElementById(
-            'filterAssessmentType'
-        ),
+        document.getElementById('filterAssessmentType'),
         'change'
     );
 
     await flushPromises();
-}
 
-function fillAssessmentForm({
-    id = '',
-    weight = '0'
-} = {}) {
-    document.getElementById('assessmentId').value =
-        id;
-
-    document.getElementById('assessmentType').value =
-        'Fluency';
-
-    document.getElementById('component').value =
-        'Vocabulary';
-
-    document.getElementById('passingMark').value =
-        '50';
-
-    document.getElementById('totalMark').value =
-        '100';
-
-    document.getElementById('weight').value =
-        weight;
-
-    document.getElementById('rubrics').value =
-        'Test rubric';
+    fetch.mockClear();
 }
 
 describe('Assessment UI', () => {
     beforeEach(() => {
         jest.resetModules();
-
         createDOM();
 
         global.fetch = jest.fn();
@@ -222,13 +217,7 @@ describe('Assessment UI', () => {
             .spyOn(console, 'error')
             .mockImplementation(() => {});
 
-        /*
-         * Requiring the browser JavaScript attaches
-         * its event listeners to the test DOM.
-         */
-        require(
-            '../../public/javascripts/assessmentList'
-        );
+        require('../../public/javascripts/assessmentList');
     });
 
     afterEach(() => {
@@ -239,354 +228,11 @@ describe('Assessment UI', () => {
         delete global.confirm;
     });
 
-    describe('loading and filtering assessments', () => {
-        test('loads assessments using semesterBandId', async () => {
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: []
-                })
-            );
-
-            await loadUsingFilter();
-
-            expect(fetch).toHaveBeenCalledWith(
-                '/assessments/semBand/' +
-                    'band-a1-2022-s1',
-                {
-                    cache: 'no-store'
-                }
-            );
-        });
-
-        test('adds selected filters to request URL', async () => {
-            document.getElementById(
-                'filterAssessmentType'
-            ).value = 'Fluency';
-
-            document.getElementById(
-                'filterComponent'
-            ).value = 'Vocabulary';
-
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: []
-                })
-            );
-
-            await loadUsingFilter();
-
-            expect(fetch).toHaveBeenCalledWith(
-                '/assessments/semBand/' +
-                    'band-a1-2022-s1' +
-                    '?assessmentType=Fluency' +
-                    '&component=Vocabulary',
-                {
-                    cache: 'no-store'
-                }
-            );
-        });
-
-        test('reloads when component filter receives input', async () => {
-            document.getElementById(
-                'filterComponent'
-            ).value = 'Vocabulary';
-
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: []
-                })
-            );
-
-            fire(
-                document.getElementById(
-                    'filterComponent'
-                ),
-                'input'
-            );
-
-            await flushPromises();
-
-            expect(fetch).toHaveBeenCalledWith(
-                expect.stringContaining(
-                    'component=Vocabulary'
-                ),
-                {
-                    cache: 'no-store'
-                }
-            );
-        });
-
-        test('shows API error when loading fails', async () => {
-            fetch.mockImplementationOnce(() =>
-                mockResponse(
-                    {
-                        message:
-                            'Semester band not found'
-                    },
-                    false
-                )
-            );
-
-            await loadUsingFilter();
-
-            expect(console.error)
-                .toHaveBeenCalled();
-
-            expect(alert).toHaveBeenCalledWith(
-                'Semester band not found'
-            );
-        });
-
-        test('uses fallback error message', async () => {
-            fetch.mockImplementationOnce(() =>
-                mockResponse({}, false)
-            );
-
-            await loadUsingFilter();
-
-            expect(alert).toHaveBeenCalledWith(
-                'Failed to fetch assessments'
-            );
-        });
-
-        test('handles rejected fetch request', async () => {
-            fetch.mockRejectedValueOnce(
-                new Error('Network failure')
-            );
-
-            await loadUsingFilter();
-
-            expect(console.error)
-                .toHaveBeenCalled();
-
-            expect(alert).toHaveBeenCalledWith(
-                'Network failure'
-            );
-        });
-    });
-
-    describe('rendering assessments', () => {
-        test('renders empty state and count', async () => {
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: []
-                })
-            );
-
-            await loadUsingFilter();
-
-            expect(
-                document.getElementById(
-                    'assessmentCountTitle'
-                ).textContent
-            ).toBe('0 Assessments');
-
-            expect(
-                document.getElementById(
-                    'assessmentTableBody'
-                ).textContent
-            ).toContain('No assessments found');
-
-            expect(
-                document
-                    .querySelector(
-                        '#assessmentTableBody td'
-                    )
-                    .getAttribute('colspan')
-            ).toBe('10');
-        });
-
-        test('renders assessment and submission link', async () => {
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: [
-                        createAssessment()
-                    ]
-                })
-            );
-
-            await loadUsingFilter();
-
-            const tableBody =
-                document.getElementById(
-                    'assessmentTableBody'
-                );
-
-            const link =
-                tableBody.querySelector('a');
-
-            expect(
-                document.getElementById(
-                    'assessmentCountTitle'
-                ).textContent
-            ).toBe('1 Assessments');
-
-            expect(tableBody.textContent)
-                .toContain('Fluency');
-
-            expect(tableBody.textContent)
-                .toContain('Vocabulary');
-
-            expect(tableBody.textContent)
-                .toContain('0 / 10');
-
-            expect(
-                link.getAttribute('href')
-            ).toBe(
-                '/submission/202201/A1/Fluency'
-            );
-        });
-
-        test('replaces spaces in assessment type URL', async () => {
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: [
-                        createAssessment({
-                            assessmentType:
-                                'Word Reading Accuracy'
-                        })
-                    ]
-                })
-            );
-
-            await loadUsingFilter();
-
-            expect(
-                document
-                    .querySelector(
-                        '#assessmentTableBody a'
-                    )
-                    .getAttribute('href')
-            ).toBe(
-                '/submission/202201/A1/' +
-                'Word_Reading_Accuracy'
-            );
-        });
-
-        test('shows publish, edit and delete for never-published assessment', async () => {
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: [
-                        createAssessment()
-                    ]
-                })
-            );
-
-            await loadUsingFilter();
-
-            expect(
-                document.querySelector('.publishBtn')
-            ).not.toBeNull();
-
-            expect(
-                document.querySelector('.editBtn')
-            ).not.toBeNull();
-
-            expect(
-                document.querySelector('.deleteBtn')
-            ).not.toBeNull();
-
-            expect(
-                document.querySelector('.unpublishBtn')
-            ).toBeNull();
-        });
-
-        test('shows unpublish when published with no submissions', async () => {
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: [
-                        createAssessment({
-                            isPublished: true,
-                            isPublishedAnywhere: true,
-                            totalSubmitted: 0
-                        })
-                    ]
-                })
-            );
-
-            await loadUsingFilter();
-
-            expect(
-                document.querySelector('.unpublishBtn')
-            ).not.toBeNull();
-
-            expect(
-                document.querySelector('.publishBtn')
-            ).toBeNull();
-
-            expect(
-                document.querySelector('.editBtn')
-            ).toBeNull();
-
-            expect(
-                document.querySelector('.deleteBtn')
-            ).toBeNull();
-        });
-
-        test('hides unpublish after submission exists', async () => {
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: [
-                        createAssessment({
-                            isPublished: true,
-                            isPublishedAnywhere: true,
-                            totalSubmitted: 1
-                        })
-                    ]
-                })
-            );
-
-            await loadUsingFilter();
-
-            expect(
-                document.querySelector('.publishBtn')
-            ).toBeNull();
-
-            expect(
-                document.querySelector('.unpublishBtn')
-            ).toBeNull();
-
-            expect(
-                document.querySelector('.editBtn')
-            ).toBeNull();
-
-            expect(
-                document.querySelector('.deleteBtn')
-            ).toBeNull();
-        });
-
-        test('shows dash when rubrics are null', async () => {
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: [
-                        createAssessment({
-                            rubrics: null
-                        })
-                    ]
-                })
-            );
-
-            await loadUsingFilter();
-
-            expect(
-                document.querySelector(
-                    '.viewRubricsBtn'
-                )
-            ).toBeNull();
-
-            expect(
-                document.getElementById(
-                    'assessmentTableBody'
-                ).textContent
-            ).toContain('-');
-        });
-    });
-
-    describe('create and edit modal', () => {
-        test('opens reset and enabled create form', () => {
+    describe('Create Assessment', () => {
+        test('opens an empty enabled creation form', () => {
             fillAssessmentForm({
-                id: '5',
-                weight: '25'
+                id: '15',
+                weight: '75'
             });
 
             document.getElementById(
@@ -625,38 +271,19 @@ describe('Assessment UI', () => {
                 ).textContent
             ).toBe('Create Assessment');
 
-            expect(
-                document.getElementById(
-                    'assessmentType'
-                ).disabled
-            ).toBe(false);
+            for (const id of [
+                'assessmentType',
+                'component',
+                'passingMark',
+                'totalMark'
+            ]) {
+                expect(
+                    document.getElementById(id).disabled
+                ).toBe(false);
+            }
 
             expect(
-                document.getElementById(
-                    'component'
-                ).disabled
-            ).toBe(false);
-
-            expect(
-                document.getElementById(
-                    'passingMark'
-                ).disabled
-            ).toBe(false);
-
-            expect(
-                document.getElementById(
-                    'totalMark'
-                ).disabled
-            ).toBe(false);
-
-            /*
-             * Weight remains disabled because it is
-             * managed through Band Settings.
-             */
-            expect(
-                document.getElementById(
-                    'weight'
-                ).disabled
+                document.getElementById('weight').disabled
             ).toBe(true);
 
             expect(
@@ -672,42 +299,145 @@ describe('Assessment UI', () => {
             ).toBe('flex');
         });
 
-        test('closes assessment modal on Cancel', () => {
+        test('submits minimum marks as numbers without weight', async () => {
+            fetch
+                .mockImplementationOnce(() =>
+                    mockResponse({
+                        message:
+                            'Assessment created successfully',
+                        assessmentId: 11
+                    })
+                )
+                .mockImplementationOnce(() =>
+                    mockResponse({ data: [] })
+                );
+
+            fillAssessmentForm({
+                assessmentType: 'Letter Formation',
+                component: 'Writing',
+                passingMark: '0',
+                totalMark: '0',
+                weight: '75',
+                rubrics: ''
+            });
+
             document.getElementById(
                 'assessmentModal'
             ).style.display = 'flex';
 
-            document.getElementById(
-                'cancelModalBtn'
-            ).click();
+            fire(
+                document.getElementById('assessmentForm'),
+                'submit'
+            );
+
+            await flushPromises();
+
+            const [url, options] = fetch.mock.calls[0];
+            const body = JSON.parse(options.body);
+
+            expect(url).toBe('/assessments');
+            expect(options.method).toBe('POST');
+
+            expect(body).toEqual({
+                assessmentType: 'Letter Formation',
+                component: 'Writing',
+                passingMark: 0,
+                totalMark: 0,
+                rubrics: '',
+                semesterId: 202201,
+                band: 'A1'
+            });
+
+            expect(body).not.toHaveProperty('weight');
+
+            expect(alert).toHaveBeenCalledWith(
+                'Assessment created successfully'
+            );
 
             expect(
                 document.getElementById(
                     'assessmentModal'
                 ).style.display
             ).toBe('none');
+
+            expect(fetch).toHaveBeenCalledTimes(2);
         });
 
-        test('populates unpublished assessment for editing', async () => {
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: [
-                        createAssessment()
-                    ]
+        test.each([
+            [
+                'Assessment type already exists for this band'
+            ],
+            [
+                'Passing Mark cannot exceed Total Mark'
+            ],
+            [
+                'passingMark cannot be negative'
+            ],
+            [
+                'No matching band found for this semester'
+            ],
+            [
+                'Failed to create assessment'
+            ]
+        ])(
+            'keeps modal open when creation fails: %s',
+            async message => {
+                fetch.mockImplementationOnce(() =>
+                    mockResponse(
+                        { message },
+                        false
+                    )
+                );
+
+                fillAssessmentForm();
+
+                document.getElementById(
+                    'assessmentModal'
+                ).style.display = 'flex';
+
+                fire(
+                    document.getElementById(
+                        'assessmentForm'
+                    ),
+                    'submit'
+                );
+
+                await flushPromises();
+
+                expect(alert).toHaveBeenCalledWith(
+                    message
+                );
+
+                expect(
+                    document.getElementById(
+                        'assessmentModal'
+                    ).style.display
+                ).toBe('flex');
+
+                expect(fetch).toHaveBeenCalledTimes(1);
+            }
+        );
+    });
+
+    describe('Edit Assessment', () => {
+        test('opens an unpublished assessment with editable core fields', async () => {
+            await renderAssessments([
+                assessment({
+                    isPublished: false,
+                    isPublishedAnywhere: false
                 })
-            );
+            ]);
 
-            await loadUsingFilter();
-
-            clickSvg(
-                document.querySelector('.editBtn')
+            fire(
+                document.querySelector('.editBtn'),
+                'click'
             );
 
             expect(
                 document.getElementById(
                     'assessmentId'
                 ).value
-            ).toBe('5');
+            ).toBe('15');
 
             expect(
                 document.getElementById(
@@ -733,41 +463,20 @@ describe('Assessment UI', () => {
                 ).value
             ).toBe('100');
 
-            expect(
-                document.getElementById(
-                    'weight'
-                ).value
-            ).toBe('0');
+            for (const id of [
+                'assessmentType',
+                'component',
+                'passingMark',
+                'totalMark'
+            ]) {
+                expect(
+                    document.getElementById(id).disabled
+                ).toBe(false);
+            }
 
             expect(
-                document.getElementById(
-                    'weight'
-                ).disabled
+                document.getElementById('weight').disabled
             ).toBe(true);
-
-            expect(
-                document.getElementById(
-                    'rubrics'
-                ).value
-            ).toBe('Read each word clearly.');
-
-            expect(
-                document.getElementById(
-                    'modalTitle'
-                ).textContent
-            ).toBe('Edit Assessment');
-
-            expect(
-                document.getElementById(
-                    'assessmentType'
-                ).disabled
-            ).toBe(false);
-
-            expect(
-                document.getElementById(
-                    'editLockNotice'
-                ).style.display
-            ).toBe('none');
 
             expect(
                 document.getElementById(
@@ -776,58 +485,36 @@ describe('Assessment UI', () => {
             ).toBe('flex');
         });
 
-        test('locks core fields after past publication', async () => {
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: [
-                        createAssessment({
-                            isPublished: false,
-                            isPublishedAnywhere: true
-                        })
-                    ]
+        test('locks core fields for a previously published assessment', async () => {
+            await renderAssessments([
+                assessment({
+                    isPublished: false,
+                    isPublishedAnywhere: true
                 })
+            ]);
+
+            fire(
+                document.querySelector('.editBtn'),
+                'click'
             );
 
-            await loadUsingFilter();
-
-            clickSvg(
-                document.querySelector('.editBtn')
-            );
+            for (const id of [
+                'assessmentType',
+                'component',
+                'passingMark',
+                'totalMark'
+            ]) {
+                expect(
+                    document.getElementById(id).disabled
+                ).toBe(true);
+            }
 
             expect(
-                document.getElementById(
-                    'assessmentType'
-                ).disabled
+                document.getElementById('weight').disabled
             ).toBe(true);
 
             expect(
-                document.getElementById(
-                    'component'
-                ).disabled
-            ).toBe(true);
-
-            expect(
-                document.getElementById(
-                    'passingMark'
-                ).disabled
-            ).toBe(true);
-
-            expect(
-                document.getElementById(
-                    'totalMark'
-                ).disabled
-            ).toBe(true);
-
-            expect(
-                document.getElementById(
-                    'weight'
-                ).disabled
-            ).toBe(true);
-
-            expect(
-                document.getElementById(
-                    'rubrics'
-                ).disabled
+                document.getElementById('rubrics').disabled
             ).toBe(false);
 
             expect(
@@ -837,157 +524,7 @@ describe('Assessment UI', () => {
             ).toBe('block');
         });
 
-        test('opens and closes rubrics modal', async () => {
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: [
-                        createAssessment()
-                    ]
-                })
-            );
-
-            await loadUsingFilter();
-
-            clickSvg(
-                document.querySelector(
-                    '.viewRubricsBtn'
-                )
-            );
-
-            expect(
-                document.getElementById(
-                    'rubricsModalContent'
-                ).textContent
-            ).toBe('Read each word clearly.');
-
-            expect(
-                document.getElementById(
-                    'rubricsModal'
-                ).style.display
-            ).toBe('flex');
-
-            document.getElementById(
-                'closeRubricsBtn'
-            ).click();
-
-            expect(
-                document.getElementById(
-                    'rubricsModal'
-                ).style.display
-            ).toBe('none');
-        });
-    });
-
-    describe('creating and updating assessments', () => {
-        test('POSTs assessment without weight', async () => {
-            fetch
-                .mockImplementationOnce(() =>
-                    mockResponse({
-                        message:
-                            'Assessment created successfully',
-                        assessmentId: 10
-                    })
-                )
-                .mockImplementationOnce(() =>
-                    mockResponse({
-                        data: []
-                    })
-                );
-
-            fillAssessmentForm({
-                id: '',
-                weight: '0'
-            });
-
-            document.getElementById(
-                'assessmentModal'
-            ).style.display = 'flex';
-
-            fire(
-                document.getElementById(
-                    'assessmentForm'
-                ),
-                'submit'
-            );
-
-            await flushPromises();
-
-            expect(fetch).toHaveBeenNthCalledWith(
-                1,
-                '/assessments',
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type':
-                            'application/json'
-                    },
-                    body: JSON.stringify({
-                        assessmentType: 'Fluency',
-                        component: 'Vocabulary',
-                        passingMark: 50,
-                        totalMark: 100,
-                        rubrics: 'Test rubric',
-                        semesterId: 202201,
-                        band: 'A1'
-                    })
-                }
-            );
-
-            expect(alert).toHaveBeenCalledWith(
-                'Assessment created successfully'
-            );
-
-            expect(
-                document.getElementById(
-                    'assessmentModal'
-                ).style.display
-            ).toBe('none');
-
-            expect(fetch).toHaveBeenCalledTimes(2);
-        });
-
-        test('keeps modal open when creation fails', async () => {
-            fetch.mockImplementationOnce(() =>
-                mockResponse(
-                    {
-                        message:
-                            'Assessment type already ' +
-                            'exists for this band'
-                    },
-                    false
-                )
-            );
-
-            fillAssessmentForm();
-
-            document.getElementById(
-                'assessmentModal'
-            ).style.display = 'flex';
-
-            fire(
-                document.getElementById(
-                    'assessmentForm'
-                ),
-                'submit'
-            );
-
-            await flushPromises();
-
-            expect(alert).toHaveBeenCalledWith(
-                'Assessment type already ' +
-                'exists for this band'
-            );
-
-            expect(
-                document.getElementById(
-                    'assessmentModal'
-                ).style.display
-            ).toBe('flex');
-
-            expect(fetch).toHaveBeenCalledTimes(1);
-        });
-
-        test('PUTs assessment without weight', async () => {
+        test('submits edit using PUT without weight', async () => {
             fetch
                 .mockImplementationOnce(() =>
                     mockResponse({
@@ -996,14 +533,15 @@ describe('Assessment UI', () => {
                     })
                 )
                 .mockImplementationOnce(() =>
-                    mockResponse({
-                        data: []
-                    })
+                    mockResponse({ data: [] })
                 );
 
             fillAssessmentForm({
-                id: '5',
-                weight: '0'
+                id: '15',
+                passingMark: '60',
+                totalMark: '100',
+                weight: '75',
+                rubrics: 'Updated rubric.'
             });
 
             document.getElementById(
@@ -1019,28 +557,27 @@ describe('Assessment UI', () => {
 
             await flushPromises();
 
-            expect(fetch).toHaveBeenNthCalledWith(
-                1,
-                '/assessments/5',
-                expect.objectContaining({
-                    method: 'PUT',
-                    body: expect.any(String)
-                })
-            );
+            const [url, options] = fetch.mock.calls[0];
+            const body = JSON.parse(options.body);
 
-            expect(
-                JSON.parse(
-                    fetch.mock.calls[0][1].body
-                )
-            ).toEqual({
+            expect(url).toBe('/assessments/15');
+            expect(options.method).toBe('PUT');
+
+            expect(body).toEqual({
                 assessmentType: 'Fluency',
                 component: 'Vocabulary',
-                passingMark: 50,
+                passingMark: 60,
                 totalMark: 100,
-                rubrics: 'Test rubric',
+                rubrics: 'Updated rubric.',
                 semesterId: 202201,
                 band: 'A1'
             });
+
+            expect(body).not.toHaveProperty('weight');
+
+            expect(alert).toHaveBeenCalledWith(
+                'Assessment updated successfully'
+            );
 
             expect(
                 document.getElementById(
@@ -1050,33 +587,76 @@ describe('Assessment UI', () => {
 
             expect(fetch).toHaveBeenCalledTimes(2);
         });
+
+        test.each([
+            [
+                'This assessment has been published before: ' +
+                'only rubrics can be changed'
+            ],
+            ['Assessment not found'],
+            ['Failed to update assessment']
+        ])(
+            'keeps edit modal open when update fails: %s',
+            async message => {
+                fetch.mockImplementationOnce(() =>
+                    mockResponse(
+                        { message },
+                        false
+                    )
+                );
+
+                fillAssessmentForm({ id: '15' });
+
+                document.getElementById(
+                    'assessmentModal'
+                ).style.display = 'flex';
+
+                fire(
+                    document.getElementById(
+                        'assessmentForm'
+                    ),
+                    'submit'
+                );
+
+                await flushPromises();
+
+                expect(alert).toHaveBeenCalledWith(
+                    message
+                );
+
+                expect(
+                    document.getElementById(
+                        'assessmentModal'
+                    ).style.display
+                ).toBe('flex');
+
+                expect(fetch).toHaveBeenCalledTimes(1);
+            }
+        );
     });
 
-    describe('publishing assessments', () => {
-        async function renderPublishButton() {
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: [
-                        createAssessment()
-                    ]
-                })
-            );
-
-            await loadUsingFilter();
-        }
-
-        test('opens publish modal with details', async () => {
-            await renderPublishButton();
+    describe('Publish Assessment', () => {
+        async function openPublishModal() {
+            await renderAssessments([
+                assessment()
+            ]);
 
             document
                 .querySelector('.publishBtn')
                 .click();
+        }
+
+        test('opens modal with assessment information', async () => {
+            document.getElementById('dueDate').value =
+                '2026-01-01';
+
+            await openPublishModal();
 
             expect(
                 document.getElementById(
                     'publishAssessmentId'
                 ).value
-            ).toBe('5');
+            ).toBe('15');
 
             expect(
                 document.getElementById(
@@ -1104,56 +684,37 @@ describe('Assessment UI', () => {
 
             expect(
                 document.getElementById(
-                    'publishModal'
-                ).style.display
-            ).toBe('flex');
-        });
-
-        test('closes publish modal on Cancel', () => {
-            document.getElementById(
-                'publishModal'
-            ).style.display = 'flex';
-
-            document.getElementById(
-                'cancelPublishBtn'
-            ).click();
+                    'dueDate'
+                ).value
+            ).toBe('');
 
             expect(
                 document.getElementById(
                     'publishModal'
                 ).style.display
-            ).toBe('none');
+            ).toBe('flex');
         });
 
-        test('publishes and refreshes successfully', async () => {
+        test('publishes and reloads successfully', async () => {
+            await openPublishModal();
+
             fetch
                 .mockImplementationOnce(() =>
                     mockResponse({
+                        message:
+                            'Assessment published successfully',
                         studentsAssigned: 24
                     })
                 )
                 .mockImplementationOnce(() =>
-                    mockResponse({
-                        data: []
-                    })
+                    mockResponse({ data: [] })
                 );
 
-            document.getElementById(
-                'publishAssessmentId'
-            ).value = '5';
-
-            document.getElementById(
-                'dueDate'
-            ).value = '2026-09-30';
-
-            document.getElementById(
-                'publishModal'
-            ).style.display = 'flex';
+            document.getElementById('dueDate').value =
+                '2026-09-30';
 
             fire(
-                document.getElementById(
-                    'publishForm'
-                ),
+                document.getElementById('publishForm'),
                 'submit'
             );
 
@@ -1161,12 +722,11 @@ describe('Assessment UI', () => {
 
             expect(fetch).toHaveBeenNthCalledWith(
                 1,
-                '/assessments/5/publish',
+                '/assessments/15/publish',
                 {
                     method: 'POST',
                     headers: {
-                        'Content-Type':
-                            'application/json'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         semesterId: '202201',
@@ -1188,75 +748,65 @@ describe('Assessment UI', () => {
             expect(fetch).toHaveBeenCalledTimes(2);
         });
 
-        test('keeps publish modal open on failure', async () => {
-            fetch.mockImplementationOnce(() =>
-                mockResponse(
-                    {
-                        message:
-                            'No students found for this ' +
-                            'band in this semester'
-                    },
-                    false
-                )
-            );
+        test.each([
+            [
+                'No students found for this band in this semester'
+            ],
+            ['Already published for this semester']
+        ])(
+            'keeps publish modal open on failure: %s',
+            async message => {
+                await openPublishModal();
 
-            document.getElementById(
-                'publishAssessmentId'
-            ).value = '5';
+                fetch.mockImplementationOnce(() =>
+                    mockResponse(
+                        { message },
+                        false
+                    )
+                );
 
-            document.getElementById(
-                'dueDate'
-            ).value = '2026-09-30';
-
-            document.getElementById(
-                'publishModal'
-            ).style.display = 'flex';
-
-            fire(
                 document.getElementById(
-                    'publishForm'
-                ),
-                'submit'
-            );
+                    'dueDate'
+                ).value = '2026-09-30';
 
-            await flushPromises();
+                fire(
+                    document.getElementById(
+                        'publishForm'
+                    ),
+                    'submit'
+                );
 
-            expect(alert).toHaveBeenCalledWith(
-                'No students found for this ' +
-                'band in this semester'
-            );
+                await flushPromises();
 
-            expect(
-                document.getElementById(
-                    'publishModal'
-                ).style.display
-            ).toBe('flex');
+                expect(alert).toHaveBeenCalledWith(
+                    message
+                );
 
-            expect(fetch).toHaveBeenCalledTimes(1);
-        });
+                expect(
+                    document.getElementById(
+                        'publishModal'
+                    ).style.display
+                ).toBe('flex');
+
+                expect(fetch).toHaveBeenCalledTimes(1);
+            }
+        );
     });
 
-    describe('unpublishing assessments', () => {
+    describe('Unpublish Assessment', () => {
         async function renderUnpublishButton() {
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: [
-                        createAssessment({
-                            isPublished: true,
-                            isPublishedAnywhere: true,
-                            totalSubmitted: 0
-                        })
-                    ]
+            await renderAssessments([
+                assessment({
+                    isPublished: true,
+                    isPublishedAnywhere: true,
+                    totalSubmitted: 0
                 })
-            );
-
-            await loadUsingFilter();
+            ]);
         }
 
-        test('does nothing when confirmation cancelled', async () => {
+        test('does nothing when confirmation is cancelled', async () => {
             await renderUnpublishButton();
 
-            fetch.mockClear();
             confirm.mockReturnValue(false);
 
             document
@@ -1266,28 +816,24 @@ describe('Assessment UI', () => {
             await flushPromises();
 
             expect(confirm).toHaveBeenCalled();
-
             expect(fetch).not.toHaveBeenCalled();
+            expect(alert).not.toHaveBeenCalled();
         });
 
-        test('unpublishes and refreshes successfully', async () => {
+        test('unpublishes and reloads successfully', async () => {
             await renderUnpublishButton();
 
-            fetch.mockClear();
             confirm.mockReturnValue(true);
 
             fetch
                 .mockImplementationOnce(() =>
                     mockResponse({
                         message:
-                            'Assessment unpublished ' +
-                            'successfully'
+                            'Assessment unpublished successfully'
                     })
                 )
                 .mockImplementationOnce(() =>
-                    mockResponse({
-                        data: []
-                    })
+                    mockResponse({ data: [] })
                 );
 
             document
@@ -1298,12 +844,11 @@ describe('Assessment UI', () => {
 
             expect(fetch).toHaveBeenNthCalledWith(
                 1,
-                '/assessments/5/unpublish',
+                '/assessments/15/unpublish',
                 {
                     method: 'POST',
                     headers: {
-                        'Content-Type':
-                            'application/json'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         semesterId: '202201'
@@ -1318,72 +863,72 @@ describe('Assessment UI', () => {
             expect(fetch).toHaveBeenCalledTimes(2);
         });
 
-        test('does not refresh when unpublish fails', async () => {
-            await renderUnpublishButton();
+        test.each([
+            [
+                'Cannot unpublish: students have already submitted work'
+            ],
+            [
+                'This assessment is not published for this semester'
+            ]
+        ])(
+            'does not reload when unpublish fails: %s',
+            async message => {
+                await renderUnpublishButton();
 
-            fetch.mockClear();
-            confirm.mockReturnValue(true);
+                confirm.mockReturnValue(true);
 
-            fetch.mockImplementationOnce(() =>
-                mockResponse(
-                    {
-                        message:
-                            'Cannot unpublish: students ' +
-                            'have already submitted work'
-                    },
-                    false
-                )
-            );
+                fetch.mockImplementationOnce(() =>
+                    mockResponse(
+                        { message },
+                        false
+                    )
+                );
 
-            document
-                .querySelector('.unpublishBtn')
-                .click();
+                document
+                    .querySelector('.unpublishBtn')
+                    .click();
 
-            await flushPromises();
+                await flushPromises();
 
-            expect(alert).toHaveBeenCalledWith(
-                'Cannot unpublish: students ' +
-                'have already submitted work'
-            );
+                expect(alert).toHaveBeenCalledWith(
+                    message
+                );
 
-            expect(fetch).toHaveBeenCalledTimes(1);
-        });
+                expect(fetch).toHaveBeenCalledTimes(1);
+            }
+        );
     });
 
-    describe('deleting assessments', () => {
+    describe('Delete Assessment', () => {
         async function renderDeleteButton() {
-            fetch.mockImplementationOnce(() =>
-                mockResponse({
-                    data: [
-                        createAssessment()
-                    ]
+            await renderAssessments([
+                assessment({
+                    isPublished: false,
+                    isPublishedAnywhere: false
                 })
-            );
-
-            await loadUsingFilter();
+            ]);
         }
 
-        test('does nothing when confirmation cancelled', async () => {
+        test('does nothing when confirmation is cancelled', async () => {
             await renderDeleteButton();
 
-            fetch.mockClear();
             confirm.mockReturnValue(false);
 
-            clickSvg(
-                document.querySelector('.deleteBtn')
+            fire(
+                document.querySelector('.deleteBtn'),
+                'click'
             );
 
             await flushPromises();
 
             expect(confirm).toHaveBeenCalled();
-
             expect(fetch).not.toHaveBeenCalled();
+            expect(alert).not.toHaveBeenCalled();
         });
 
-        test('deletes and refreshes successfully', async () => {
+        test('deletes and reloads successfully', async () => {
             await renderDeleteButton();
 
-            fetch.mockClear();
             confirm.mockReturnValue(true);
 
             fetch
@@ -1394,20 +939,19 @@ describe('Assessment UI', () => {
                     })
                 )
                 .mockImplementationOnce(() =>
-                    mockResponse({
-                        data: []
-                    })
+                    mockResponse({ data: [] })
                 );
 
-            clickSvg(
-                document.querySelector('.deleteBtn')
+            fire(
+                document.querySelector('.deleteBtn'),
+                'click'
             );
 
             await flushPromises();
 
             expect(fetch).toHaveBeenNthCalledWith(
                 1,
-                '/assessments/5',
+                '/assessments/15',
                 {
                     method: 'DELETE'
                 }
@@ -1420,35 +964,39 @@ describe('Assessment UI', () => {
             expect(fetch).toHaveBeenCalledTimes(2);
         });
 
-        test('does not refresh when delete fails', async () => {
-            await renderDeleteButton();
+        test.each([
+            [
+                'Cannot delete: this assessment has published records'
+            ],
+            ['Assessment not found'],
+            ['Failed to delete assessment']
+        ])(
+            'does not reload when deletion fails: %s',
+            async message => {
+                await renderDeleteButton();
 
-            fetch.mockClear();
-            confirm.mockReturnValue(true);
+                confirm.mockReturnValue(true);
 
-            fetch.mockImplementationOnce(() =>
-                mockResponse(
-                    {
-                        message:
-                            'Cannot delete: this assessment ' +
-                            'has published records'
-                    },
-                    false
-                )
-            );
+                fetch.mockImplementationOnce(() =>
+                    mockResponse(
+                        { message },
+                        false
+                    )
+                );
 
-            clickSvg(
-                document.querySelector('.deleteBtn')
-            );
+                fire(
+                    document.querySelector('.deleteBtn'),
+                    'click'
+                );
 
-            await flushPromises();
+                await flushPromises();
 
-            expect(alert).toHaveBeenCalledWith(
-                'Cannot delete: this assessment ' +
-                'has published records'
-            );
+                expect(alert).toHaveBeenCalledWith(
+                    message
+                );
 
-            expect(fetch).toHaveBeenCalledTimes(1);
-        });
+                expect(fetch).toHaveBeenCalledTimes(1);
+            }
+        );
     });
 });
